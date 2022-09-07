@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<base target="_top">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		/* Block button */
+		.block {
+			width: 100%;
+			display: block;
+			border: none;
+			background-color: #ff5c00;
+			color: white;
+			padding: 14px 28px;
+			font-size: 18px;
+			cursor: pointer;
+			text-align: center;
+			border-radius: 4px;
+		}
+
+		.block:hover {
+			background-color: #111111;
+			color: white;
+		}
+
+		/* End. Block button */
+
+
+		/* Button Top */
+		#goToTopButton {
+			display: none;
+			position: fixed;
+			bottom: 20px;
+			right: 30px;
+			z-index: 99;
+			font-size: 18px;
+			border: none;
+			outline: none;
+			background-color: #ff5c00;
+			color: white;
+			cursor: pointer;
+			padding: 15px;
+			border-radius: 4px;
+		}
+
+		#goToTopButton:hover {
+			background-color: #111111;
+		}
+
+		/* End. Button Top */
+
+		/* Loader */
+
+		#loader {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			z-index: 1;
+			width: 120px;
+			height: 120px;
+			margin: -76px 0 0 -66px;
+		}
+
+		#bibDiv {
+			display: none;
+			text-align: left;
+		}
+
+
+		.lds-ring {
+			display: inline-block;
+			position: relative;
+			width: 120px;
+			height: 120px;
+		}
+
+		.lds-ring div {
+			box-sizing: border-box;
+			display: block;
+			position: absolute;
+			width: 120px;
+			height: 120px;
+			margin: 8px;
+			border: 8px solid #ff5c00;
+			border-radius: 50%;
+			animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+			border-color: #ff5c00 transparent transparent transparent;
+		}
+
+		.lds-ring div:nth-child(1) {
+			animation-delay: -0.45s;
+		}
+
+		.lds-ring div:nth-child(2) {
+			animation-delay: -0.3s;
+		}
+
+		.lds-ring div:nth-child(3) {
+			animation-delay: -0.15s;
+		}
+
+		@keyframes lds-ring {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* End. Loader */
+	</style>
+	<script>
+		loadBib();
+
+function onSuccess(bib){
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("bibDiv").style.display = "block";
+
+  document.getElementById("error").innerHTML = "";
+  document.getElementById("bib").innerHTML = bib;
+}
+
+function loadBib(){
+
+  document.getElementById("loader").style.display = "block";
+  document.getElementById("bibDiv").style.display = "none";
+
+  google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).bibliographyForSidebar();
+}
+
+function onFailure(error) {
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("bibDiv").style.display = "block";
+
+  var div = document.getElementById('error');
+
+      error.message += '<br><br><i>The source of the error may be this: The bibliography sidebar will only work if the account that you are using in the document is also the default account you use to log into Google using your browser. Click on your user image, and check that you are using this document with your default account.</i>';
+  
+  div.innerHTML = "ERROR: " + error.message;
+  document.getElementById("bib").innerHTML = "";
+}
+	</script>
+</head>
+
+<body onload="loadBib()">
+	<div id="loader">
+		<div class="lds-ring">
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+		</div>
+	</div>
+
+	<div style="display:none;" id="bibDiv">
+
+		<input class="block" type="button" value="Update" onclick="loadBib()">
+		<div id="error" style="color:#ff0000;"></div>
+		<div id="bib"></div>
+
+	</div>
+
+
+	<button onclick="gotToTop()" id="goToTopButton">Top</button>
+
+	<script>
+		window.onscroll = function() {  let mybutton = document.getElementById("goToTopButton");
+if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    mybutton.style.display = "block";
+  } else {
+    mybutton.style.display = "none";
+  }};
+
+function gotToTop() {
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+}
+	</script>
+
+</body>
+
+</html>
