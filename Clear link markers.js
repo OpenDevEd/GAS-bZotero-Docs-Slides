@@ -8,6 +8,8 @@ function clearLinkMarkers() {
       doc.replaceText(URL_CHANGED_LINK_MARK, '');
       doc.replaceText(BROKEN_LINK_MARK, '');
       doc.replaceText(UNKNOWN_LIBRARY_MARK, '');
+      doc.replaceText(NORMAL_LINK_MARK, '');
+      doc.replaceText(NORMAL_REDIRECT_LINK_MARK, '');
 
       const footnotes = doc.getFootnotes();
       let footnote;
@@ -17,6 +19,8 @@ function clearLinkMarkers() {
         footnote.replaceText(URL_CHANGED_LINK_MARK, '');
         footnote.replaceText(BROKEN_LINK_MARK, '');
         footnote.replaceText(UNKNOWN_LIBRARY_MARK, '');
+        footnote.replaceText(NORMAL_LINK_MARK, '');
+        footnote.replaceText(NORMAL_REDIRECT_LINK_MARK, '');
       }
     } else {
       // Slides part
@@ -28,6 +32,8 @@ function clearLinkMarkers() {
             pageElement.asShape().getText().replaceAllText(URL_CHANGED_LINK_MARK, '');
             pageElement.asShape().getText().replaceAllText(BROKEN_LINK_MARK, '');
             pageElement.asShape().getText().replaceAllText(UNKNOWN_LIBRARY_MARK, '');
+            pageElement.asShape().getText().replaceAllText(NORMAL_LINK_MARK, '');
+            pageElement.asShape().getText().replaceAllText(NORMAL_REDIRECT_LINK_MARK, '');
           } else if (pageElement.getPageElementType() == SlidesApp.PageElementType.TABLE) {
 
             const table = pageElement.asTable();
@@ -41,6 +47,8 @@ function clearLinkMarkers() {
                   cell.getText().replaceAllText(URL_CHANGED_LINK_MARK, '');
                   cell.getText().replaceAllText(BROKEN_LINK_MARK, '');
                   cell.getText().replaceAllText(UNKNOWN_LIBRARY_MARK, '');
+                  cell.getText().replaceAllText(NORMAL_LINK_MARK, '');
+                  cell.getText().replaceAllText(NORMAL_REDIRECT_LINK_MARK, '');
                 }
               }
             }

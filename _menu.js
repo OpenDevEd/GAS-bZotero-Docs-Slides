@@ -60,6 +60,7 @@ function onOpen(e) {
     .addItem('Enter validation site', 'enterValidationSite')
   );
   menu.addSubMenu(ui.createMenu('Additional functions')
+    .addItem('Analyse Kerko links', 'analyseKerkoLinks')
     .addItem('Show item keys', 'showItemKeys')
     .addItem('Show links & urls', 'validateLinksTestHelper')
     .addSeparator()

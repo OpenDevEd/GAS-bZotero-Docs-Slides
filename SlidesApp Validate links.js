@@ -1,4 +1,4 @@
-function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, flagsObject) {
+function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, analysekerkolinks, flagsObject) {
   const slides = SlidesApp.getActivePresentation().getSlides();
   let bibSlideFlag, shapes, pageElement;
 
@@ -21,7 +21,7 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
         }
 
         links = pageElement.getText().getLinks();
-        validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams);
+        validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks);
       }
     }
 
@@ -43,7 +43,7 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
             }
 
             links = cell.getText().getLinks();
-            validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams);
+            validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks);
           }
         }
       }
@@ -61,7 +61,8 @@ function orphanedChangedLinksHelper(links, flagsObject) {
   }
 }
 
-function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams) {
+function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks) {
+  let linkMarkNormal;
   const ui = SlidesApp.getUi();
 
   for (let j in links) {
@@ -79,13 +80,24 @@ function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validat
     if (validate || getparams) {
       realLinkText = links[j].asRenderedString();
 
-      // Normal link. No need to set any mark
       if (result.type == 'NORMAL LINK') {
-        if (result.url != link) {
-          links[j].getTextStyle().setLinkUrl(result.url);
+        if (analysekerkolinks) {
+          if (result.normalLinkType == 'NORMAL') {
+            linkMarkNormal = NORMAL_LINK_MARK;
+            flagsObject.notiTextNormalLink = true;
+          } else {
+            linkMarkNormal = NORMAL_REDIRECT_LINK_MARK;
+            flagsObject.notiTextNormalRedirectLink = true;
+          }
+          insertMarkSlides(links[j], realLinkText, linkMarkNormal, link);
+        } else {
+          // Normal link. No need to set any mark
+          if (result.url != link) {
+            links[j].getTextStyle().setLinkUrl(result.url);
+          }
+          // End. Normal link. No need to set any mark
         }
       }
-      // End. Normal link. No need to set any mark
 
       // The link is broken
       if (result.type == 'BROKEN LINK' && validate) {
@@ -118,7 +130,7 @@ function checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, url, validatio
 
   const urlRegEx = new RegExp('https?://ref.opendeved.net/zo/zg/[0-9]+/7/[^/]+/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)', 'i');
   if (url.search(urlRegEx) == 0) {
-    Logger.log('Yes----------------------');
+    //Logger.log('Yes----------------------');
 
     if (alreadyCheckedLinks.hasOwnProperty(url)) {
       result = alreadyCheckedLinks[url];
@@ -140,7 +152,7 @@ function checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, url, validatio
     } else {
       urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
     }
-    return { status: 'ok', type: result.type, url: urlWithParameters, permittedLibrary: result.permittedLibrary };
+    return { status: 'ok', type: result.type, normalLinkType: result.normalLinkType, url: urlWithParameters, permittedLibrary: result.permittedLibrary };
   }
   return { status: 'ok' };
 }

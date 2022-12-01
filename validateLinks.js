@@ -75,9 +75,11 @@ function replaceAddParameter(url, name, srcParameter) {
   return url;
 }
 
+function analyseKerkoLinks() {
+  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true);
+}
 
-
-function validateLinks(validate = true, getparams = true, markorphanedlinks = true) {
+function validateLinks(validate = true, getparams = true, markorphanedlinks = true, analysekerkolinks = false) {
   console.time('validateLinks time')
 
   let bibReferences = [];
@@ -213,7 +215,9 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
     notiTextBroken: false,
     notiTextUnknownLibrary: false,
     bibliographyExists: false,
-    dontCollectLinksFlag: false
+    dontCollectLinksFlag: false,
+    notiTextNormalLink: false,
+    notiTextNormalRedirectLink: false
   };
 
 
@@ -235,7 +239,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
     }
 
     // Body
-    result = findLinksToValidate(body, validate, getparams, markorphanedlinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
+    result = findLinksToValidate(body, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
     if (result.status == 'error') {
       ui.alert(result.message);
       return 0;
@@ -249,7 +253,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
       footnote = footnotes[i].getFootnoteContents();
       numChildren = footnote.getNumChildren();
       for (let j = 0; j < numChildren; j++) {
-        result = findLinksToValidate(footnote.getChild(j), validate, getparams, markorphanedlinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
+        result = findLinksToValidate(footnote.getChild(j), validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
         if (result.status == 'error') {
           ui.alert(result.message);
           return 0;
@@ -261,13 +265,19 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
     // End. Doc part
   } else {
     // Slides part
-    validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, flagsObject);
+    validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, analysekerkolinks, flagsObject);
     // End. Slides part
   }
-  if (validate === true || getparams === true || markorphanedlinks === true) {
+  if (validate === true || getparams === true || markorphanedlinks === true || analysekerkolinks === true) {
     console.timeEnd('validateLinks time')
     if (flagsObject.notiTextBroken) {
       notiText = 'There were broken links. Please search for BROKEN_LINK.';
+    }
+    if (flagsObject.notiTextNormalLink) {
+      notiText += '\nThere were valid links. Please search for VALID_LINK.';
+    }
+    if (flagsObject.notiTextNormalRedirectLink) {
+      notiText += '\nThere were valid redirect links. Please search for VALID_REDIRECT_LINK.';
     }
     if (flagsObject.notiTextOrphaned) {
       notiText += '\nThere were orphaned links. Please search for ORPHANED_LINK.';
@@ -296,10 +306,10 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
 }
 
 
-function checkHyperlinkNew(url, element, start, end, validate, getparams, markorphanedlinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks) {
+function checkHyperlinkNew(url, element, start, end, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks) {
   // Logger.log(validate + ' ' + getparams + ' ' + markorphanedlinks);
   // Logger.log('url ' + url);
-  let linkText, previousLinkIndex, flagMarkOrphanedLinks = false;
+  let linkText, previousLinkIndex, flagMarkOrphanedLinks = false, linkMarkNormal;
   if (markorphanedlinks) {
     linkText = element.getText().substr(start, end - start + 1);
 
@@ -349,20 +359,36 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       bibReferences.push(result.bibRef);
     }
 
-    // Task 9 2021-04-13
-    if (!validate || result.type == 'BROKEN LINK') {
-      urlWithParameters = addSrcToURL(url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
+    if (analysekerkolinks) {
+      // Marks valid links
+      if (result.type == 'NORMAL LINK' && validate) {
+        if (result.normalLinkType == 'NORMAL') {
+          linkMarkNormal = NORMAL_LINK_MARK;
+          flagsObject.notiTextNormalLink = true;
+        } else {
+          linkMarkNormal = NORMAL_REDIRECT_LINK_MARK;
+          flagsObject.notiTextNormalRedirectLink = true;
+        }
+        element.insertText(start, linkMarkNormal).setLinkUrl(start, start + linkMarkNormal.length - 1, null).setAttributes(start, start + linkMarkNormal.length - 1, LINK_MARK_STYLE_NEW);
+      }
+      // End. Marks valid links
     } else {
-      urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-    }
-    // End. Task 9 2021-04-13
+      // Usual Update/validate links via Kerko
+      // Task 9 2021-04-13
+      if (!validate || result.type == 'BROKEN LINK') {
+        urlWithParameters = addSrcToURL(url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
+      } else {
+        urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
+      }
+      // End. Task 9 2021-04-13
 
-    if (validate || getparams) {
-      //Logger.log('element.setLinkUrl(start, end, urlWithParameters); ' + urlWithParameters);
-      element.setLinkUrl(start, end, urlWithParameters);
-      element.setUnderline(start, end, false);
+      if (validate || getparams) {
+        //Logger.log('element.setLinkUrl(start, end, urlWithParameters); ' + urlWithParameters);
+        element.setLinkUrl(start, end, urlWithParameters);
+        element.setUnderline(start, end, false);
+      }
+      // End. Usual Update/validate links via Kerko
     }
-
     // 2021-05-11 Update
     if (result.type == 'BROKEN LINK' && validate) {
       //Logger.log('BROKEN LINK');
@@ -375,6 +401,8 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       element.insertText(start, UNKNOWN_LIBRARY_MARK).setAttributes(start, start + UNKNOWN_LIBRARY_MARK.length - 1, LINK_MARK_STYLE_NEW);
       flagsObject.notiTextUnknownLibrary = true;
     }
+
+
   }
 
   if (flagMarkOrphanedLinks) {
@@ -432,7 +460,7 @@ function checkLink(url, validationSite, validate) {
   let result;
   if (validate) {
     //Logger.log('Validation!');
-    result = detectRedirect(newUrl);
+    result = detectRedirect(newUrl, 1);
     if (result.status == 'error') {
       return result;
     }
@@ -551,10 +579,10 @@ function getGroupIdItemKey(url) {
   }
 }
 
-function detectRedirect(url) {
+function detectRedirect(url, attempt) {
   try {
     //Logger.log('detectRedirect' + url);
-    let redirect;
+    let redirect, normalLinkType;
     let response = UrlFetchApp.fetch(url, { 'followRedirects': false, 'muteHttpExceptions': true });
     //Logger.log(response.getResponseCode());
 
@@ -571,16 +599,17 @@ function detectRedirect(url) {
         if (headers['Refresh'].search('0; URL=') == 0) {
           redirect = headers['Refresh'].replace('0; URL=', '');
           //Logger.log('  ' + redirect);
-          return detectRedirect(redirect);
+          return detectRedirect(redirect, 2);
         }
       } else if (headers.hasOwnProperty('Location') && !(response.getResponseCode() == 302 && headers['Location'].search('/groups/') == 0)) {
         //Logger.log('headers.hasOwnProperty(Location)');
         redirect = headers['Location'];
         //Logger.log('  ' + redirect);
-        return detectRedirect(redirect);
+        return detectRedirect(redirect, 2);
       } else {
         //Logger.log('no Redirect');
-        return { status: 'ok', type: 'NORMAL LINK', url: url }
+        normalLinkType = attempt == 1 ? 'NORMAL' : 'REDIRECT';
+        return { status: 'ok', type: 'NORMAL LINK', url: url, normalLinkType: normalLinkType }
       }
     }
   }
@@ -590,7 +619,7 @@ function detectRedirect(url) {
 }
 
 
-function findLinksToValidate(element, validate, getparams, markorphanedlinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject) {
+function findLinksToValidate(element, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject) {
 
   let text, end, indices, partAttributes, numChildren, result;
   let previousLinks = [];
@@ -631,7 +660,7 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, bi
           end = indices[i + 1] - 1;
         }
 
-        result = checkHyperlinkNew(partAttributes.LINK_URL, element, indices[i], end, validate, getparams, markorphanedlinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks);
+        result = checkHyperlinkNew(partAttributes.LINK_URL, element, indices[i], end, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks);
         if (result.status == 'error') {
           return result;
         }
@@ -642,7 +671,7 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, bi
     if (arrayTypes.includes(elementType)) {
       numChildren = element.getNumChildren();
       for (let i = 0; i < numChildren; i++) {
-        result = findLinksToValidate(element.getChild(i), validate, getparams, markorphanedlinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
+        result = findLinksToValidate(element.getChild(i), validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
         if (result.status == 'error') {
           return result;
         }
