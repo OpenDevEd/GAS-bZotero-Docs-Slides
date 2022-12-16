@@ -179,8 +179,8 @@ function scanForItemKeySlides(targetRefLinks) {
               //Logger.log('libLink ' + libLink);
               result = detectZoteroItemKeyType('https://' + libLink);
               if (result.status == 'error') {
-                addZoteroItemKey('', false, false, targetRefLinks);
-                return 0;
+                result = addZoteroItemKey('', false, false, targetRefLinks);
+                return result;
               }
               foundFlag = true;
             }
@@ -191,8 +191,9 @@ function scanForItemKeySlides(targetRefLinks) {
   }
 
   if (!foundFlag) {
-    addZoteroItemKey('', false, false, targetRefLinks);
+    result = addZoteroItemKey('', false, false, targetRefLinks);
   }
+  return result;
 }
 
 function insertOrphanedChangedLinksMarkers(element, previousLinks, flagsObject, start, end, linkText, url) {

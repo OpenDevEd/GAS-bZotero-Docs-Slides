@@ -72,8 +72,8 @@ function scanForItemKey(targetRefLinks) {
 
   if (!foundFlag) {
     result = addZoteroItemKey('', false, false, targetRefLinks);
-    return result;
   }
+  return result;
 }
 
 
