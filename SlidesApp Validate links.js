@@ -70,7 +70,9 @@ function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validat
     link = links[j].getTextStyle().getLink().getUrl();
     //Logger.log('JJ ' + links[j].getStartIndex() + ' ' + links[j].getEndIndex() + ' ' + link + ' ' + links[j].asRenderedString());
     //orphanedChangedlinksHelper(links[j], previousLinks, flagsObject, links[j].getStartIndex(), links[j].getEndIndex(), links[j].asRenderedString(), link);
-
+    if (link == null) {
+      continue;
+    }
     result = checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, link, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate);
     if (result.status == 'error') {
       ui.alert(result.message);
