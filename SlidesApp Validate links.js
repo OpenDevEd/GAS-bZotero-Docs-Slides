@@ -65,8 +65,13 @@ function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validat
   let linkMarkNormal;
   const ui = SlidesApp.getUi();
 
-  for (let j in links) {
 
+  for (let j = links.length - 1; j >= 0; j--) {
+    // Logger.log('TXT=' + links[j].asRenderedString());
+    // Logger.log(links[j]);
+    // Logger.log(links[j].getTextStyle());
+    // Logger.log(links[j].getTextStyle().getLink());
+    // Logger.log(links[j].getTextStyle().getLink().getUrl());
     link = links[j].getTextStyle().getLink().getUrl();
     //Logger.log('JJ ' + links[j].getStartIndex() + ' ' + links[j].getEndIndex() + ' ' + link + ' ' + links[j].asRenderedString());
     //orphanedChangedlinksHelper(links[j], previousLinks, flagsObject, links[j].getStartIndex(), links[j].getEndIndex(), links[j].asRenderedString(), link);

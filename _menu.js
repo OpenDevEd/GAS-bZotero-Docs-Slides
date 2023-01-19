@@ -67,6 +67,9 @@ function onOpen(e) {
     .addItem('Convert ZoteroTransfer markers to BZotero', 'zoteroTransferDoc')
     .addSeparator()
     .addItem('Remove country markers (⇡Country: )', 'removeCountryMarkers')
+    .addSeparator()
+    .addItem('Convert to numbered references (\'Vancouver\')', 'applyVancouverStyle')
+    .addItem('Convert to text references (\'APA7\')', 'applyAPA7Style')
     // Remove for now:  
     //.addItem('znocountry highlight missing country info', 'highlightMissingCountryMarker')
     // Remove for now

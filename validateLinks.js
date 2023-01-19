@@ -44,7 +44,7 @@ function addSrcToURL(url, targetRefLinks, srcParameter, zoteroCollectionKey) {
 
 
 function replaceAddParameter(url, name, srcParameter) {
-  if (url.indexOf(srcParameter) == -1) {
+  if (url.indexOf(name + '=' + srcParameter) == -1) {
     const srcPos = url.indexOf(name + '=');
     if (srcPos == -1) {
       const questionMarkPos = url.indexOf('?');
@@ -417,6 +417,20 @@ function checkLink(url, validationSite, validate) {
 
   let urlOut, itemKeyOut;
   let itemKeyIn, groupIdIn;
+  let vancouverStyle, resultVancouverStyle, parLinkText;
+
+  if (/text=.+/i.test(url)) {
+    vancouverStyle = true;
+    resultVancouverStyle = /text=([^&]+)/i.exec(url);
+    //Logger.log('result=' + result);
+    if (resultVancouverStyle == null) {
+      vancouverStyle = false;
+    } else {
+      parLinkText = resultVancouverStyle[1];
+    }
+  } else {
+    vancouverStyle = false;
+  }
 
   let validationSiteRegEx = new RegExp(validationSite, 'i');
 
@@ -495,6 +509,10 @@ function checkLink(url, validationSite, validate) {
       url = url.replace(itemKeyIn, itemKeyOut);
     } else {
       url = 'https://ref.opendeved.net/zo/zg/' + groupIdOut + '/7/' + itemKeyOut + '/';
+    }
+
+    if (vancouverStyle === true) {
+      url = replaceAddParameter(url, 'text', parLinkText);
     }
 
     result.url = url;
