@@ -6,12 +6,11 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
 
     const activeUserDomain = String(activeUser).split('@')[1];
 
-    if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net') {
+    if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net' && activeUser != 'opendeved.addons@gmail.com') {
       return { status: 'error', message: 'Access denied! You can\'t use Forest API.' };
     }
 
-    const apiCall = 'https://forest.opendeved.net/api/bib/';
-
+    /* const apiCall = 'https://forest.opendeved.net/api/bib/';
     const options = {
       'method': 'post',
       'payload': JSON.stringify({
@@ -20,6 +19,26 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
         'zgroup': zoteroItemGroup,
         'gdoc': docOrPresoId,
         'token': token,
+        'groupkeys': groupkeys,
+        'target': target,
+        'mode': mode
+      }),
+      'muteHttpExceptions': true
+    };
+    */
+
+    const apiCall = 'https://forest.opendeved.net/api/v1/getbib/';
+    const options = {
+      'method': 'post',
+      'headers': {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      'payload': JSON.stringify({
+        'user': activeUser,
+        'zkey': zoteroItemKey,
+        'zgroup': zoteroItemGroup,
+        'gdoc': docOrPresoId,
         'groupkeys': groupkeys,
         'target': target,
         'mode': mode
