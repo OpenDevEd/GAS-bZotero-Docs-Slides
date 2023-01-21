@@ -7,7 +7,7 @@ function clearLinkMarkers() {
       doc.replaceText(ORPHANED_LINK_MARK, '');
       doc.replaceText(URL_CHANGED_LINK_MARK, '');
       doc.replaceText(BROKEN_LINK_MARK, '');
-      doc.replaceText(UNKNOWN_LIBRARY_MARK, '');
+      //doc.replaceText(UNKNOWN_LIBRARY_MARK, '');
       doc.replaceText(NORMAL_LINK_MARK, '');
       doc.replaceText(NORMAL_REDIRECT_LINK_MARK, '');
 
@@ -18,7 +18,7 @@ function clearLinkMarkers() {
         footnote.replaceText(ORPHANED_LINK_MARK, '');
         footnote.replaceText(URL_CHANGED_LINK_MARK, '');
         footnote.replaceText(BROKEN_LINK_MARK, '');
-        footnote.replaceText(UNKNOWN_LIBRARY_MARK, '');
+        //footnote.replaceText(UNKNOWN_LIBRARY_MARK, '');
         footnote.replaceText(NORMAL_LINK_MARK, '');
         footnote.replaceText(NORMAL_REDIRECT_LINK_MARK, '');
       }
@@ -31,7 +31,7 @@ function clearLinkMarkers() {
             pageElement.asShape().getText().replaceAllText(ORPHANED_LINK_MARK, '');
             pageElement.asShape().getText().replaceAllText(URL_CHANGED_LINK_MARK, '');
             pageElement.asShape().getText().replaceAllText(BROKEN_LINK_MARK, '');
-            pageElement.asShape().getText().replaceAllText(UNKNOWN_LIBRARY_MARK, '');
+            //pageElement.asShape().getText().replaceAllText(UNKNOWN_LIBRARY_MARK, '');
             pageElement.asShape().getText().replaceAllText(NORMAL_LINK_MARK, '');
             pageElement.asShape().getText().replaceAllText(NORMAL_REDIRECT_LINK_MARK, '');
           } else if (pageElement.getPageElementType() == SlidesApp.PageElementType.TABLE) {

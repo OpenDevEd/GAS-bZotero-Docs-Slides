@@ -114,10 +114,10 @@ function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validat
       // End. The link is broken
 
       // The library isn't permitted
-      if (result.permittedLibrary == false) {
+      /* if (result.permittedLibrary == false) {
         flagsObject.notiTextUnknownLibrary = true;
         insertMarkSlides(links[j], realLinkText, UNKNOWN_LIBRARY_MARK, link);
-      }
+      } */
       // End. The library isn't permitted
 
     }
@@ -159,7 +159,7 @@ function checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, url, validatio
     } else {
       urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
     }
-    return { status: 'ok', type: result.type, normalLinkType: result.normalLinkType, url: urlWithParameters, permittedLibrary: result.permittedLibrary };
+    return { status: 'ok', type: result.type, normalLinkType: result.normalLinkType, url: urlWithParameters};
   }
   return { status: 'ok' };
 }

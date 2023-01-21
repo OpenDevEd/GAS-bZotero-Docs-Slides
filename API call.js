@@ -6,7 +6,7 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
 
     const activeUserDomain = String(activeUser).split('@')[1];
 
-    if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net' && activeUser != 'opendeved.addons@gmail.com') {
+    if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net') {
       return { status: 'error', message: 'Access denied! You can\'t use Forest API.' };
     }
 
@@ -84,7 +84,7 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
       const messagestring = "Status: " + jsonResponse.status + ". Message: " + jsonResponse.message + ". Error: " + jsonResponse.error;
       return { status: 'error', message: 'Failed to retrieve data from Zotero. ' + messagestring + ". Please let your admins know about this error." };
     } else {
-      return { status: 'error', message: 'Call to forestAPI failed. Response Code = ' + code + '. Please let your admins know about this error.' };
+      return { status: 'error', message: 'Call to forestAPI failed. Response Code = ' + code + '. ' + response + ' Please let your admins know about this error.' };
     }
   }
   catch (error) {

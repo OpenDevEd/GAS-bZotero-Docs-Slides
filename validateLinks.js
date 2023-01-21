@@ -213,7 +213,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
     notiTextOrphaned: false,
     notiTextURLChanged: false,
     notiTextBroken: false,
-    notiTextUnknownLibrary: false,
+    //notiTextUnknownLibrary: false,
     bibliographyExists: false,
     dontCollectLinksFlag: false,
     notiTextNormalLink: false,
@@ -285,9 +285,9 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
     if (flagsObject.notiTextURLChanged) {
       notiText += '\nThere were URL changed links. Please search for URL_CHANGED_LINK.';
     }
-    if (flagsObject.notiTextUnknownLibrary) {
-      notiText += '\nThere were unknown libraries. Please search for UNKNOWN_LIBRARY.';
-    }
+    // if (flagsObject.notiTextUnknownLibrary) {
+    //   notiText += '\nThere were unknown libraries. Please search for UNKNOWN_LIBRARY.';
+    // }
     if (notiText != '') {
       ui.alert(notiText);
     }
@@ -396,11 +396,11 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       flagsObject.notiTextBroken = true;
     }
 
-    if (result.permittedLibrary == false) {
-      //Logger.log('result.permittedLibrary == false');
-      element.insertText(start, UNKNOWN_LIBRARY_MARK).setAttributes(start, start + UNKNOWN_LIBRARY_MARK.length - 1, LINK_MARK_STYLE_NEW);
-      flagsObject.notiTextUnknownLibrary = true;
-    }
+    // if (result.permittedLibrary == false) {
+    //   //Logger.log('result.permittedLibrary == false');
+    //   element.insertText(start, UNKNOWN_LIBRARY_MARK).setAttributes(start, start + UNKNOWN_LIBRARY_MARK.length - 1, LINK_MARK_STYLE_NEW);
+    //   flagsObject.notiTextUnknownLibrary = true;
+    // }
 
 
   }
@@ -536,13 +536,13 @@ function checkLink(url, validationSite, validate) {
   // End. [OLD] 2021-05-14 Update
 
   // 2022-03-25 Update Permitted libraries new version
-  if (validationSite != '-') {
+  /* if (validationSite != '-') {
     let permittedLibrary = false;
     if (PERMITTED_LIBRARIES.includes(groupIdOut)) {
       permittedLibrary = true;
     }
     result.permittedLibrary = permittedLibrary;
-  }
+  } */
   // End. 2022-03-25 Update Permitted libraries new version
 
 

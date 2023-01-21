@@ -11,7 +11,7 @@ const styles = {
     "BROKEN_LINK_MARK": "<BROKEN_LINK>",
     "NORMAL_LINK_MARK": "<VALID_LINK>",
     "NORMAL_REDIRECT_LINK_MARK": "<VALID_REDIRECT_LINK>",
-    "UNKNOWN_LIBRARY_MARK": "<UNKNOWN_LIBRARY>",
+    //"UNKNOWN_LIBRARY_MARK": "<UNKNOWN_LIBRARY>",
     "TEXT_TO_DETECT_START_BIB": "⁅bibliography:start⁆",
     "TEXT_TO_DETECT_END_BIB": "⁅bibliography:end⁆",
     "LINK_MARK_STYLE_FOREGROUND_COLOR": "#ff0000",
@@ -26,7 +26,7 @@ const styles = {
     "name": "ZoteroDocs (OpenDevEd)",
     "default_everybody": false,
     "default_for": "opendeved.net",
-    "permitted_libraries": ["2129771", "2405685", "2486141", "2447227"],
+    // "permitted_libraries": ["2129771", "2405685", "2486141", "2447227"],
     "local_show_advanced_menu": true,
     "kerkoValidationSite": 'https://docs.opendeved.net/lib/',
     "group_id": "2129771",
@@ -36,7 +36,7 @@ const styles = {
     "name": "ZoteroDocs (EdTech Hub)",
     "default_everybody": false,
     "default_for": "edtechhub.org",
-    "permitted_libraries": ["2405685", "2339240", "2129771"],
+    // "permitted_libraries": ["2405685", "2339240", "2129771"],
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://docs.edtechhub.org/lib/',
     "group_id": "2405685"
@@ -72,7 +72,7 @@ function getDefaultStyle() {
 let ACTIVE_STYLE = getDefaultStyle();
 //Logger.log('Test 1' + ACTIVE_STYLE);
 
-let PERMITTED_LIBRARIES, AUTO_PROMPT_COLLECTION, ORPHANED_LINK_MARK, URL_CHANGED_LINK_MARK, BROKEN_LINK_MARK, UNKNOWN_LIBRARY_MARK, TEXT_TO_DETECT_START_BIB, TEXT_TO_DETECT_END_BIB,
+let AUTO_PROMPT_COLLECTION, ORPHANED_LINK_MARK, URL_CHANGED_LINK_MARK, BROKEN_LINK_MARK, UNKNOWN_LIBRARY_MARK, TEXT_TO_DETECT_START_BIB, TEXT_TO_DETECT_END_BIB,
   LINK_MARK_STYLE_FOREGROUND_COLOR, LINK_MARK_STYLE_BACKGROUND_COLOR, LINK_MARK_STYLE_BOLD, HOST_APP,
   NORMAL_LINK_MARK, NORMAL_REDIRECT_LINK_MARK;
 
@@ -115,14 +115,14 @@ function updateStyle() {
     Logger.log(error);
   }
 
-  PERMITTED_LIBRARIES = getStyleValue('permitted_libraries');
+  //PERMITTED_LIBRARIES = getStyleValue('permitted_libraries');
   AUTO_PROMPT_COLLECTION = getStyleValue('AUTO_PROMPT_COLLECTION');
   ORPHANED_LINK_MARK = getStyleValue('ORPHANED_LINK_MARK');
   URL_CHANGED_LINK_MARK = getStyleValue('URL_CHANGED_LINK_MARK');
   BROKEN_LINK_MARK = getStyleValue('BROKEN_LINK_MARK');
   NORMAL_LINK_MARK = getStyleValue('NORMAL_LINK_MARK');
   NORMAL_REDIRECT_LINK_MARK = getStyleValue('NORMAL_REDIRECT_LINK_MARK');
-  UNKNOWN_LIBRARY_MARK = getStyleValue('UNKNOWN_LIBRARY_MARK');
+  //UNKNOWN_LIBRARY_MARK = getStyleValue('UNKNOWN_LIBRARY_MARK');
   TEXT_TO_DETECT_START_BIB = getStyleValue('TEXT_TO_DETECT_START_BIB');
   TEXT_TO_DETECT_END_BIB = getStyleValue('TEXT_TO_DETECT_END_BIB');
 
@@ -168,4 +168,8 @@ function getEditors() {
   } else {
     return SlidesApp.getActivePresentation().getEditors();
   }
+}
+
+function refOpenDevEdLinksRegEx(){
+  return new RegExp('https?://ref.opendeved.net/zo/zg/[0-9]+/7/[^/]+/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)', 'i');
 }
