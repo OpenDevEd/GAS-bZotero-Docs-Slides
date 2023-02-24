@@ -42,10 +42,11 @@ function onOpen(e) {
 
   const menu = ui.createMenu('bZotero');
   const where = ' via ' + targetRefLinks;
+  const whereForest = targetRefLinks == 'kerko' ? ' via Forest API' : ' via zotero';
   menu.addItem('Insert/update bibliography', 'insertUpdateBibliography');
   menu.addItem('Bibliography sidebar [experimental]', 'bibliographySidebar');
   menu.addSeparator();
-  menu.addItem('Update/validate document links' + where, 'validateLinks');
+  menu.addItem('Update/validate document links' + whereForest, 'validateLinks');
   menu.addItem('Clear validation markers', 'clearLinkMarkers');
   menu.addItem('Remove underlines from hyperlinks', 'removeUnderlineFromHyperlinks');
   menu.addItem('Remove openin=zoteroapp from hyperlinks', 'removeOpeninZoteroapp');
@@ -61,6 +62,8 @@ function onOpen(e) {
   );
   menu.addSubMenu(ui.createMenu('Additional functions')
     .addItem('Analyse Kerko links', 'analyseKerkoLinks')
+    .addItem('Analyse Kerko links V1', 'analyseKerkoLinksV1')
+    .addItem('Update/validate document links' + where + ' V1', 'validateLinksV1')
     .addItem('Show item keys', 'showItemKeys')
     .addItem('Show links & urls', 'validateLinksTestHelper')
     .addSeparator()

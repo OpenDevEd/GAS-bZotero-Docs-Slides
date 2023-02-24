@@ -9,9 +9,22 @@ const styles = {
     "ORPHANED_LINK_MARK": "<ORPHANED_LINK>",
     "URL_CHANGED_LINK_MARK": "<URL_CHANGED_LINK>",
     "BROKEN_LINK_MARK": "<BROKEN_LINK>",
-    "NORMAL_LINK_MARK": "<VALID_LINK>",
-    "NORMAL_REDIRECT_LINK_MARK": "<VALID_REDIRECT_LINK>",
-    //"UNKNOWN_LIBRARY_MARK": "<UNKNOWN_LIBRARY>",
+    "NORMAL_LINK_MARK": "<NORMAL_LINK>",
+    "NORMAL_REDIRECT_LINK_MARK": "<NORMAL_REDIRECT_LINK>",
+    //  "UNKNOWN_LIBRARY_MARK": "<UNKNOWN_LIBRARY>",
+
+    // New Forest API markers
+    "VALID_LINK_MARK": "<VALID_LINK>",
+    "VALID_AMBIGUOUS_LINK_MARK": "<VALID_AMBIGUOUS_LINK>",
+    "REDIRECT_LINK_MARK": "<VALID_REDIRECT_LINK>",
+    "REDIRECT_AMBIGUOUS_LINK_MARK": "<REDIRECT_AMBIGUOUS_LINK>",
+    "IMPORTABLE_LINK_MARK": "<IMPORTABLE_LINK>",
+    "IMPORTABLE_AMBIGUOUS_LINK_MARK": "<IMPORTABLE_AMBIGUOUS_LINK>",
+    "IMPORTABLE_REDIRECT_LINK_MARK": "<IMPORTABLE_REDIRECT_LINK>",
+    "UNKNOWN_LINK_MARK": "<UNKNOWN_LINK>",
+    "INVALID_SYNTAX_LINK_MARK": "<INVALID_SYNTAX_LINK>",
+    // End. New Forest API markers
+
     "TEXT_TO_DETECT_START_BIB": "⁅bibliography:start⁆",
     "TEXT_TO_DETECT_END_BIB": "⁅bibliography:end⁆",
     "LINK_MARK_STYLE_FOREGROUND_COLOR": "#ff0000",
@@ -19,14 +32,13 @@ const styles = {
     "LINK_MARK_STYLE_BOLD": true,
     "kerkoValidationSite": null,
     "group_id": null
-
   },
   "opendeved":
   {
     "name": "ZoteroDocs (OpenDevEd)",
     "default_everybody": false,
     "default_for": "opendeved.net",
-    // "permitted_libraries": ["2129771", "2405685", "2486141", "2447227"],
+    //  "permitted_libraries": ["2129771", "2405685", "2486141", "2447227"],
     "local_show_advanced_menu": true,
     "kerkoValidationSite": 'https://docs.opendeved.net/lib/',
     "group_id": "2129771",
@@ -36,7 +48,7 @@ const styles = {
     "name": "ZoteroDocs (EdTech Hub)",
     "default_everybody": false,
     "default_for": "edtechhub.org",
-    // "permitted_libraries": ["2405685", "2339240", "2129771"],
+    //  "permitted_libraries": ["2405685", "2339240", "2129771"],
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://docs.edtechhub.org/lib/',
     "group_id": "2405685"
@@ -72,11 +84,11 @@ function getDefaultStyle() {
 let ACTIVE_STYLE = getDefaultStyle();
 //Logger.log('Test 1' + ACTIVE_STYLE);
 
-let AUTO_PROMPT_COLLECTION, ORPHANED_LINK_MARK, URL_CHANGED_LINK_MARK, BROKEN_LINK_MARK, UNKNOWN_LIBRARY_MARK, TEXT_TO_DETECT_START_BIB, TEXT_TO_DETECT_END_BIB,
-  LINK_MARK_STYLE_FOREGROUND_COLOR, LINK_MARK_STYLE_BACKGROUND_COLOR, LINK_MARK_STYLE_BOLD, HOST_APP,
-  NORMAL_LINK_MARK, NORMAL_REDIRECT_LINK_MARK;
+let TEXT_TO_DETECT_START_BIB, TEXT_TO_DETECT_END_BIB;
 
 const LINK_MARK_STYLE_NEW = new Object();
+
+
 
 // Changes a value of ACTIVE_STYLE to style that is default for DocumentProperties kerko_validation_site
 function updateStyle() {
@@ -116,29 +128,71 @@ function updateStyle() {
   }
 
   //PERMITTED_LIBRARIES = getStyleValue('permitted_libraries');
-  AUTO_PROMPT_COLLECTION = getStyleValue('AUTO_PROMPT_COLLECTION');
-  ORPHANED_LINK_MARK = getStyleValue('ORPHANED_LINK_MARK');
-  URL_CHANGED_LINK_MARK = getStyleValue('URL_CHANGED_LINK_MARK');
-  BROKEN_LINK_MARK = getStyleValue('BROKEN_LINK_MARK');
-  NORMAL_LINK_MARK = getStyleValue('NORMAL_LINK_MARK');
-  NORMAL_REDIRECT_LINK_MARK = getStyleValue('NORMAL_REDIRECT_LINK_MARK');
+  // AUTO_PROMPT_COLLECTION = getStyleValue('AUTO_PROMPT_COLLECTION');
+  //ORPHANED_LINK_MARK = getStyleValue('ORPHANED_LINK_MARK');
+  //URL_CHANGED_LINK_MARK = getStyleValue('URL_CHANGED_LINK_MARK');
+
+  // BROKEN_LINK_MARK = getStyleValue('BROKEN_LINK_MARK');
+  // NORMAL_LINK_MARK = getStyleValue('NORMAL_LINK_MARK');
+  // NORMAL_REDIRECT_LINK_MARK = getStyleValue('NORMAL_REDIRECT_LINK_MARK');
+  // REDIRECT_AMBIGUOUS_LINK_MARK = getStyleValue('REDIRECT_AMBIGUOUS_LINK_MARK');
+
+
   //UNKNOWN_LIBRARY_MARK = getStyleValue('UNKNOWN_LIBRARY_MARK');
-  TEXT_TO_DETECT_START_BIB = getStyleValue('TEXT_TO_DETECT_START_BIB');
-  TEXT_TO_DETECT_END_BIB = getStyleValue('TEXT_TO_DETECT_END_BIB');
+  // TEXT_TO_DETECT_START_BIB = getStyleValue('TEXT_TO_DETECT_START_BIB');
+  // TEXT_TO_DETECT_END_BIB = getStyleValue('TEXT_TO_DETECT_END_BIB');
 
-  LINK_MARK_STYLE_FOREGROUND_COLOR = getStyleValue('LINK_MARK_STYLE_FOREGROUND_COLOR');
-  LINK_MARK_STYLE_BACKGROUND_COLOR = getStyleValue('LINK_MARK_STYLE_BACKGROUND_COLOR');
-  LINK_MARK_STYLE_BOLD = getStyleValue('LINK_MARK_STYLE_BOLD');
+  // LINK_MARK_STYLE_FOREGROUND_COLOR = getStyleValue('LINK_MARK_STYLE_FOREGROUND_COLOR');
+  // LINK_MARK_STYLE_BACKGROUND_COLOR = getStyleValue('LINK_MARK_STYLE_BACKGROUND_COLOR');
+  // LINK_MARK_STYLE_BOLD = getStyleValue('LINK_MARK_STYLE_BOLD');
 
-  if (HOST_APP == 'docs') {
-    LINK_MARK_STYLE_NEW[DocumentApp.Attribute.FOREGROUND_COLOR] = LINK_MARK_STYLE_FOREGROUND_COLOR;
-    LINK_MARK_STYLE_NEW[DocumentApp.Attribute.BACKGROUND_COLOR] = LINK_MARK_STYLE_BACKGROUND_COLOR;
-    LINK_MARK_STYLE_NEW[DocumentApp.Attribute.BOLD] = LINK_MARK_STYLE_BOLD;
-  }
+  // if (HOST_APP == 'docs') {
+  //   LINK_MARK_STYLE_NEW[DocumentApp.Attribute.FOREGROUND_COLOR] = LINK_MARK_STYLE_FOREGROUND_COLOR;
+  //   LINK_MARK_STYLE_NEW[DocumentApp.Attribute.BACKGROUND_COLOR] = LINK_MARK_STYLE_BACKGROUND_COLOR;
+  //   LINK_MARK_STYLE_NEW[DocumentApp.Attribute.BOLD] = LINK_MARK_STYLE_BOLD;
+  // }
 }
 
 updateStyle();
 //Logger.log('Test 3' + ACTIVE_STYLE);
+
+function prepareBibMarkers(){
+  TEXT_TO_DETECT_START_BIB = getStyleValue('TEXT_TO_DETECT_START_BIB');
+  TEXT_TO_DETECT_END_BIB = getStyleValue('TEXT_TO_DETECT_END_BIB');
+}
+
+const LINK_MARK_OBJ = new Object();
+const LINK_MARK_STYLE_OBJ = new Object();
+function collectLinkMarks() {
+  LINK_MARK_OBJ['ORPHANED_LINK_MARK'] = getStyleValue('ORPHANED_LINK_MARK');
+  LINK_MARK_OBJ['URL_CHANGED_LINK_MARK'] = getStyleValue('URL_CHANGED_LINK_MARK');
+
+  LINK_MARK_OBJ['BROKEN_LINK_MARK'] = getStyleValue('BROKEN_LINK_MARK');
+  LINK_MARK_OBJ['NORMAL_LINK_MARK'] = getStyleValue('NORMAL_LINK_MARK');
+  LINK_MARK_OBJ['NORMAL_REDIRECT_LINK_MARK'] = getStyleValue('NORMAL_REDIRECT_LINK_MARK');
+
+  LINK_MARK_OBJ['VALID_LINK_MARK'] = getStyleValue('VALID_LINK_MARK');
+  LINK_MARK_OBJ['VALID_AMBIGUOUS_LINK_MARK'] = getStyleValue('VALID_AMBIGUOUS_LINK_MARK');
+  LINK_MARK_OBJ['REDIRECT_LINK_MARK'] = getStyleValue('REDIRECT_LINK_MARK');
+  LINK_MARK_OBJ['REDIRECT_AMBIGUOUS_LINK_MARK'] = getStyleValue('REDIRECT_AMBIGUOUS_LINK_MARK');
+  LINK_MARK_OBJ['IMPORTABLE_LINK_MARK'] = getStyleValue('IMPORTABLE_LINK_MARK');
+  LINK_MARK_OBJ['IMPORTABLE_AMBIGUOUS_LINK_MARK'] = getStyleValue('IMPORTABLE_AMBIGUOUS_LINK_MARK');
+  LINK_MARK_OBJ['IMPORTABLE_REDIRECT_LINK_MARK'] = getStyleValue('IMPORTABLE_REDIRECT_LINK_MARK');
+
+  LINK_MARK_OBJ['UNKNOWN_LINK_MARK'] = getStyleValue('UNKNOWN_LINK_MARK');
+  LINK_MARK_OBJ['INVALID_SYNTAX_LINK_MARK'] = getStyleValue('INVALID_SYNTAX_LINK_MARK');
+
+  LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_FOREGROUND_COLOR'] = getStyleValue('LINK_MARK_STYLE_FOREGROUND_COLOR');
+  LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BACKGROUND_COLOR'] = getStyleValue('LINK_MARK_STYLE_BACKGROUND_COLOR');
+  LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BOLD'] = getStyleValue('LINK_MARK_STYLE_BOLD');
+
+  if (HOST_APP == 'docs') {
+    LINK_MARK_STYLE_NEW[DocumentApp.Attribute.FOREGROUND_COLOR] = LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_FOREGROUND_COLOR'];
+    LINK_MARK_STYLE_NEW[DocumentApp.Attribute.BACKGROUND_COLOR] = LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BACKGROUND_COLOR'];
+    LINK_MARK_STYLE_NEW[DocumentApp.Attribute.BOLD] = LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BOLD'];
+  }
+}
+
 
 // Finds style that is suitable for everybody
 function getDefaultEverybodyStyleName() {
@@ -170,6 +224,7 @@ function getEditors() {
   }
 }
 
-function refOpenDevEdLinksRegEx(){
+let REF_OPENDEVED_LINKS_REGEX;
+function refOpenDevEdLinksRegEx() {
   return new RegExp('https?://ref.opendeved.net/zo/zg/[0-9]+/7/[^/]+/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)', 'i');
 }

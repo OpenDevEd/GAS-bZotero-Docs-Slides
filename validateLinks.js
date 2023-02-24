@@ -75,17 +75,25 @@ function replaceAddParameter(url, name, srcParameter) {
   return url;
 }
 
-function analyseKerkoLinks() {
-  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true);
+function analyseKerkoLinksV1() {
+  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true, newForestAPI = false);
 }
 
-function validateLinks(validate = true, getparams = true, markorphanedlinks = true, analysekerkolinks = false) {
+function analyseKerkoLinks() {
+  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true, newForestAPI = true);
+}
+
+function validateLinksV1() {
+  validateLinks(validate = true, getparams = false, markorphanedlinks = true, analysekerkolinks = false, newForestAPI = false);
+}
+
+function validateLinks(validate = true, getparams = true, markorphanedlinks = true, analysekerkolinks = false, newForestAPI = true) {
   console.time('validateLinks time')
 
   let bibReferences = [];
   let alreadyCheckedLinks = new Object();
 
-  Logger.log(HOST_APP);
+  //Logger.log(HOST_APP);
 
   let ui = getUi();
   // try {
@@ -142,7 +150,8 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
 
   let zoteroCollectionKey;
   let currentZoteroCollectionKey = getDocumentPropertyString('zotero_collection_key');
-  if (currentZoteroCollectionKey == null && targetRefLinks == 'zotero' && AUTO_PROMPT_COLLECTION) {
+  const autoPromptCollection = getStyleValue('autoPromptCollection');
+  if (currentZoteroCollectionKey == null && targetRefLinks == 'zotero' && autoPromptCollection) {
     addZoteroCollectionKey('', true, false);
     currentZoteroCollectionKey = getDocumentPropertyString('zotero_collection_key');
     if (currentZoteroCollectionKey == null) {
@@ -208,89 +217,127 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
   }
   // End. Gets validationSite
 
+  // The object helps to track types of found links
   let notiText = '';
-  let flagsObject = {
-    notiTextOrphaned: false,
-    notiTextURLChanged: false,
-    notiTextBroken: false,
-    //notiTextUnknownLibrary: false,
-    bibliographyExists: false,
-    dontCollectLinksFlag: false,
-    notiTextNormalLink: false,
-    notiTextNormalRedirectLink: false
+  const flagsObject = {
+    bibliographyExists: { type: 'flag', status: false, text: '' },
+    dontCollectLinksFlag: { type: 'flag', status: false, text: '' },
+    notiTextOrphaned: { type: 'text', status: false, text: 'There were orphaned links. Please search for ORPHANED_LINK.' },
+    notiTextURLChanged: { type: 'text', status: false, text: 'There were URL changed links. Please search for URL_CHANGED_LINK.' },
+    notiTextBroken: { type: 'text', status: false, text: 'There were broken links. Please search for BROKEN_LINK.' },
+    notiText_NORMAL: { type: 'text', status: false, text: 'There were valid links. Please search for NORMAL_LINK_MARK.' },
+    notiText_NORMAL_REDIRECT: { type: 'text', status: false, text: 'There were valid redirect links. Please search for NORMAL_REDIRECT_LINK_MARK.' },
+    notiTextUnexpectedForestType: { type: 'text', status: false, text: 'Forest API returns unexpected type. Please search for UNEXPECTED_FOREST_TYPE. Let your admins know about this error.' },
+    notiText_valid: { type: 'text', status: false, text: 'There were valid links. Please search for VALID_LINK.' },
+    notiText_valid_ambiguous: { type: 'text', status: false, text: 'There were valid ambiguous links. Please search for VALID_AMBIGUOUS_LINK.' },
+    notiText_redirect: { type: 'text', status: false, text: 'There were valid redirect links. Please search for VALID_REDIRECT_LINK.' },
+    notiText_redirect_ambiguous: { type: 'text', status: false, text: 'There were redirect ambiguous links. Please search for REDIRECT_AMBIGUOUS_LINK.' },
+    notiText_importable: { type: 'text', status: false, text: 'There were importable links. Please search for IMPORTABLE_LINK.' },
+    notiText_importable_ambiguous: { type: 'text', status: false, text: 'There were importable ambiguous links. Please search for IMPORTABLE_AMBIGUOUS_LINK.' },
+    notiText_importable_redirect: { type: 'text', status: false, text: 'There were importable redirect links. Please search for IMPORTABLE_REDIRECT_LINK.' },
+    notiText_unknown: { type: 'text', status: false, text: 'There were unknown links. Please search for UNKNOWN_LINK.' },
+    notiText_invalid_syntax: { type: 'text', status: false, text: 'There were invalid syntax links. Please search for INVALID_SYNTAX_LINK.' },
   };
+  // End. The object helps to track types of found links
 
+  let result, onlyLinks, newForestAPIjson;
 
-  let result;
+  prepareBibMarkers();
+  REF_OPENDEVED_LINKS_REGEX = refOpenDevEdLinksRegEx();
+  const validateFalse = false, getparamsFalse = false, markorphanedlinksFalse = false, analysekerkolinksFalse = false;
 
   if (HOST_APP == 'docs') {
     // Doc part
     const doc = DocumentApp.getActiveDocument();
     const body = doc.getBody();
 
+    // Detects bibliography
     const rangeElementStart = body.findText(TEXT_TO_DETECT_START_BIB);
     const rangeElementEnd = body.findText(TEXT_TO_DETECT_END_BIB);
 
     if (rangeElementStart != null && rangeElementEnd != null) {
-      flagsObject.bibliographyExists = true;
+      flagsObject.bibliographyExists.status = true;
       //console.log('flagsObject.bibliographyExists = true;');
     } else {
       //console.log('flagsObject.bibliographyExists = false;');
     }
+    // End. Detects bibliography
 
-    // Body
-    result = findLinksToValidate(body, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
+    // Collects item keys
+    if (newForestAPI === true) {
+      //Logger.log('newForestAPI === true');
+
+      onlyLinks = true;
+
+      result = bodyFootnotesLinks(doc, body, validateFalse, getparamsFalse, markorphanedlinksFalse, analysekerkolinksFalse, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
+      if (result.status == 'error') {
+        ui.alert(result.message);
+        return 0;
+      }
+
+      //Logger.log('bibReferences ' + bibReferences);
+
+      // Forest API getRedirects
+      result = forestAPIcallGetRedirects(validationSite, bibReferences, doc.getId());
+      if (result.status == 'error') {
+        ui.alert(result.message);
+        return 0;
+      }
+      newForestAPIjson = result.json;
+      // End. Forest API getRedirects
+    }
+    // End. Collects item keys
+
+    collectLinkMarks();
+
+    onlyLinks = false;
+    alreadyCheckedLinks = new Object();
+
+    result = bodyFootnotesLinks(doc, body, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
     if (result.status == 'error') {
       ui.alert(result.message);
       return 0;
     }
-    // End. Body
-
-    // Footnotes
-    const footnotes = doc.getFootnotes();
-    let footnote, numChildren;
-    for (let i in footnotes) {
-      footnote = footnotes[i].getFootnoteContents();
-      numChildren = footnote.getNumChildren();
-      for (let j = 0; j < numChildren; j++) {
-        result = findLinksToValidate(footnote.getChild(j), validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
-        if (result.status == 'error') {
-          ui.alert(result.message);
-          return 0;
-        }
-      }
-    }
-    // End. Footnotes
-    //Logger.log('bibReferences ' + bibReferences);
     // End. Doc part
   } else {
     // Slides part
-    validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, analysekerkolinks, flagsObject);
+    if (newForestAPI === true) {
+      validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validateFalse, getparamsFalse, markorphanedlinksFalse, analysekerkolinksFalse, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
+
+      //Logger.log('bibReferences ' + bibReferences);
+      //  Forest API getRedirects
+      result = forestAPIcallGetRedirects(validationSite, bibReferences, SlidesApp.getActivePresentation().getId());
+      if (result.status == 'error') {
+        ui.alert(result.message);
+        return 0;
+      }
+      newForestAPIjson = result.json;
+      //  End. Forest API getRedirects
+    }
+
+    alreadyCheckedLinks = new Object();
+
+    collectLinkMarks();
+    validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, analysekerkolinks, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
+
+
     // End. Slides part
   }
+
   if (validate === true || getparams === true || markorphanedlinks === true || analysekerkolinks === true) {
     console.timeEnd('validateLinks time')
-    if (flagsObject.notiTextBroken) {
-      notiText = 'There were broken links. Please search for BROKEN_LINK.';
+
+    // Shows notifications in alert
+    for (let noti in flagsObject) {
+      if (flagsObject[noti]['type'] == 'text' && flagsObject[noti]['status'] === true) {
+        notiText += '\n' + flagsObject[noti]['text'];
+      }
     }
-    if (flagsObject.notiTextNormalLink) {
-      notiText += '\nThere were valid links. Please search for VALID_LINK.';
-    }
-    if (flagsObject.notiTextNormalRedirectLink) {
-      notiText += '\nThere were valid redirect links. Please search for VALID_REDIRECT_LINK.';
-    }
-    if (flagsObject.notiTextOrphaned) {
-      notiText += '\nThere were orphaned links. Please search for ORPHANED_LINK.';
-    }
-    if (flagsObject.notiTextURLChanged) {
-      notiText += '\nThere were URL changed links. Please search for URL_CHANGED_LINK.';
-    }
-    // if (flagsObject.notiTextUnknownLibrary) {
-    //   notiText += '\nThere were unknown libraries. Please search for UNKNOWN_LIBRARY.';
-    // }
     if (notiText != '') {
       ui.alert(notiText);
     }
+    // End. Shows notifications in alert
+
   }
   if (validate === false || getparams === false || markorphanedlinks === true) {
     //Logger.log('targetRefLinks (validate links)' + targetRefLinks);
@@ -306,9 +353,9 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
 }
 
 
-function checkHyperlinkNew(url, element, start, end, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks) {
-  // Logger.log(validate + ' ' + getparams + ' ' + markorphanedlinks);
-  // Logger.log('url ' + url);
+function checkHyperlinkNew(url, element, start, end, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks, newForestAPIjson, newForestAPI) {
+  //Logger.log(validate + ' ' + getparams + ' ' + markorphanedlinks);
+
   let linkText, previousLinkIndex, flagMarkOrphanedLinks = false, linkMarkNormal;
   if (markorphanedlinks) {
     linkText = element.getText().substr(start, end - start + 1);
@@ -327,8 +374,8 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       //   brokenOrphanedLinks.push({ segmentId: segmentId, startIndex: item.startIndex, text: URL_CHANGED_LINK_MARK });
       // }
       if (!flagMarkOrphanedLinks && previousLinks[previousLinkIndex].start == end + 1 && previousLinks[previousLinkIndex].url != url && !previousLinks[previousLinkIndex].linkText.match(/^\s+$/) && !previousLinks[previousLinkIndex].linkText[0].match(/^\s+$/)) {
-        element.insertText(end + 1, URL_CHANGED_LINK_MARK).setLinkUrl(end + 1, end + URL_CHANGED_LINK_MARK.length, null).setAttributes(end + 1, end + URL_CHANGED_LINK_MARK.length, LINK_MARK_STYLE_NEW);
-        flagsObject.notiTextURLChanged = true;
+        element.insertText(end + 1, LINK_MARK_OBJ['URL_CHANGED_LINK_MARK']).setLinkUrl(end + 1, end + LINK_MARK_OBJ['URL_CHANGED_LINK_MARK'].length, null).setAttributes(end + 1, end + LINK_MARK_OBJ['URL_CHANGED_LINK_MARK'].length, LINK_MARK_STYLE_NEW);
+        flagsObject.notiTextURLChanged.status = true;
         //element.setLinkUrl(start, end, urlWithParameters);
       }
     }
@@ -337,50 +384,64 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
     //Logger.log(previousLinks);
   }
 
-
-  //let urlRegEx = new RegExp('https?://ref.opendeved.net/zo/zg/[0-9]+/7/[^/]+/?', 'i');
-  const urlRegEx = new RegExp('https?://ref.opendeved.net/zo/zg/[0-9]+/7/[^/]+/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)', 'i');
-  if (url.search(urlRegEx) == 0) {
+  if (REF_OPENDEVED_LINKS_REGEX.test(url)) {
     //Logger.log('Yes----------------------');
 
     if (alreadyCheckedLinks.hasOwnProperty(url)) {
       result = alreadyCheckedLinks[url];
     } else {
-      result = checkLink(url, validationSite, validate);
+      result = checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI);
       if (result.status == 'error') {
         return result;
       }
       alreadyCheckedLinks[url] = result;
 
-      // Logger.log('alreadyCheckedLinks' + JSON.stringify(alreadyCheckedLinks));
+      //Logger.log('alreadyCheckedLinks' + JSON.stringify(alreadyCheckedLinks));
     }
 
     if (bibReferences.indexOf(result.bibRef) == -1) {
       bibReferences.push(result.bibRef);
     }
-
+    // result.type == 'NEW FOREST API LINK'
+    // ['valid', 'valid_ambiguous', 'redirect', 'redirect_ambiguous', 'importable', 'unknown', 'invalid_syntax']
     if (analysekerkolinks) {
       // Marks valid links
-      if (result.type == 'NORMAL LINK' && validate) {
-        if (result.normalLinkType == 'NORMAL') {
-          linkMarkNormal = NORMAL_LINK_MARK;
-          flagsObject.notiTextNormalLink = true;
-        } else {
-          linkMarkNormal = NORMAL_REDIRECT_LINK_MARK;
-          flagsObject.notiTextNormalRedirectLink = true;
-        }
-        element.insertText(start, linkMarkNormal).setLinkUrl(start, start + linkMarkNormal.length - 1, null).setAttributes(start, start + linkMarkNormal.length - 1, LINK_MARK_STYLE_NEW);
+      /* if (result.type == 'NORMAL LINK' && validate) {
+         if (result.normalLinkType == 'NORMAL') {
+           linkMarkNormal = NORMAL_LINK_MARK;
+           flagsObject.notiTextNormalLink.status = true;
+         } else {
+           linkMarkNormal = NORMAL_REDIRECT_LINK_MARK;
+           flagsObject.notiTextNormalRedirectLink.status = true;
+         }
+         element.insertText(start, linkMarkNormal).setLinkUrl(start, start + linkMarkNormal.length - 1, null).setAttributes(start, start + linkMarkNormal.length - 1, LINK_MARK_STYLE_NEW);
+       } */
+      // End. Marks valid links
+      // Marks valid links
+      if (validate && (result.type == 'NORMAL LINK' || result.forestType == 'valid' || result.forestType == 'redirect')) {
+        const validType = newForestAPI === true ? result.forestType : result.normalLinkType;
+        const VALID_OR_REDIRECT_MARK = LINK_MARK_OBJ[validType.toString().toUpperCase() + '_LINK_MARK'];
+        element.insertText(start, VALID_OR_REDIRECT_MARK).setLinkUrl(start, start + VALID_OR_REDIRECT_MARK.length - 1, null).setAttributes(start, start + VALID_OR_REDIRECT_MARK.length - 1, LINK_MARK_STYLE_NEW);
+        flagsObject['notiText' + '_' + validType].status = true;
       }
       // End. Marks valid links
     } else {
       // Usual Update/validate links via Kerko
       // Task 9 2021-04-13
-      if (!validate || result.type == 'BROKEN LINK') {
-        urlWithParameters = addSrcToURL(url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-      } else {
-        urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-      }
+      // if (!validate || result.type == 'BROKEN') {
+      //   urlWithParameters = addSrcToURL(url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
+      // } else {
+      //   urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
+      // }
       // End. Task 9 2021-04-13
+
+      let updatedUrl;
+      if (validate && ((result.type == 'NORMAL LINK' && result.normalLinkType == 'REDIRECT') || (result.type == 'NEW FOREST API LINK' && result.forestType == 'redirect'))) {
+        updatedUrl = result.url;
+      } else {
+        updatedUrl = url;
+      }
+      urlWithParameters = addSrcToURL(updatedUrl, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
 
       if (validate || getparams) {
         //Logger.log('element.setLinkUrl(start, end, urlWithParameters); ' + urlWithParameters);
@@ -389,32 +450,26 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       }
       // End. Usual Update/validate links via Kerko
     }
+
+
     // 2021-05-11 Update
-    if (result.type == 'BROKEN LINK' && validate) {
-      //Logger.log('BROKEN LINK');
-      element.insertText(start, BROKEN_LINK_MARK).setLinkUrl(start, start + BROKEN_LINK_MARK.length - 1, null).setAttributes(start, start + BROKEN_LINK_MARK.length - 1, LINK_MARK_STYLE_NEW);
-      flagsObject.notiTextBroken = true;
+    if (validate && (result.type == 'BROKEN' || (newForestAPI === true && result.forestType != 'redirect' && result.forestType != 'valid'))) {
+      const NOT_VALID_NOT_REDIRECT_MARK = getNotValidNotRedirectMark(result, flagsObject);
+      element.insertText(start, NOT_VALID_NOT_REDIRECT_MARK).setLinkUrl(start, start + NOT_VALID_NOT_REDIRECT_MARK.length - 1, null).setAttributes(start, start + NOT_VALID_NOT_REDIRECT_MARK.length - 1, LINK_MARK_STYLE_NEW);
     }
-
-    // if (result.permittedLibrary == false) {
-    //   //Logger.log('result.permittedLibrary == false');
-    //   element.insertText(start, UNKNOWN_LIBRARY_MARK).setAttributes(start, start + UNKNOWN_LIBRARY_MARK.length - 1, LINK_MARK_STYLE_NEW);
-    //   flagsObject.notiTextUnknownLibrary = true;
-    // }
-
 
   }
 
   if (flagMarkOrphanedLinks) {
-    element.insertText(start, ORPHANED_LINK_MARK).setAttributes(start, start + ORPHANED_LINK_MARK.length - 1, LINK_MARK_STYLE_NEW);
-    flagsObject.notiTextOrphaned = true;
+    element.insertText(start, LINK_MARK_OBJ['ORPHANED_LINK_MARK']).setAttributes(start, start + LINK_MARK_OBJ['ORPHANED_LINK_MARK'].length - 1, LINK_MARK_STYLE_NEW);
+    flagsObject.notiTextOrphaned.status = true;
   }
   return { status: 'ok' };
 }
 
 
-function checkLink(url, validationSite, validate) {
-
+function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI) {
+  //Logger.log('4 ' + JSON.stringify(newForestAPIjson) + ' ' + newForestAPI);
   let urlOut, itemKeyOut;
   let itemKeyIn, groupIdIn;
   let vancouverStyle, resultVancouverStyle, parLinkText;
@@ -457,7 +512,6 @@ function checkLink(url, validationSite, validate) {
 
   // New code Adjustment of broken links  2021-05-03
   let new_Url;
-
   if (validationSite != '-') {
     if (groupIdIn == '2405685' || groupIdIn == '2129771') {
       newUrl = validationSite + itemKeyIn;
@@ -471,12 +525,33 @@ function checkLink(url, validationSite, validate) {
   // End. New code Adjustment of broken links  2021-05-03 
 
   // 2021-05-11 Update
-  let result;
+  let result = new Object();
   if (validate) {
-    //Logger.log('Validation!');
-    result = detectRedirect(newUrl, 1);
-    if (result.status == 'error') {
-      return result;
+    if (newForestAPI === true) {
+      //Logger.log('New Validation!');
+      result.type = 'NEW FOREST API LINK';
+      result.url = url;
+    } else {
+
+      // New code Adjustment of broken links  2021-05-03
+      let new_Url;
+      if (validationSite != '-') {
+        if (groupIdIn == '2405685' || groupIdIn == '2129771') {
+          newUrl = validationSite + itemKeyIn;
+        } else {
+          newUrl = validationSite + groupIdIn + ':' + itemKeyIn;
+        }
+      } else {
+        newUrl = url;
+      }
+      // Logger.log('newUrl=' + newUrl);
+      // End. New code Adjustment of broken links  2021-05-03 
+
+      //Logger.log('Old Validation!');
+      result = detectRedirect(newUrl, 1);
+      if (result.status == 'error') {
+        return result;
+      }
     }
   } else {
     //Logger.log('Without validation');
@@ -486,25 +561,41 @@ function checkLink(url, validationSite, validate) {
 
   let groupIdOut = styles[ACTIVE_STYLE]['group_id'];
 
-  if (validate && result.type == 'NORMAL LINK' && validationSite != '-') {
-    urlOut = result.url;
-    if (urlOut.search(validationSiteRegEx) != 0) {
-      return { status: 'error', message: 'Unexpected redirect URL ' + urlOut + ' for link ' + url + ' Script expects ' + validationSite };
-    }
+  if (validate && (result.type == 'NORMAL LINK' || result.type == 'NEW FOREST API LINK') && validationSite != '-') {
+    if (newForestAPI === true) {
+      const forestType = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn].type;
+      //Logger.log('forestType=' + forestType);
+      if (forestType == 'redirect') {
+        const groupIdItemKeyArray = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn]['data'][0].split(':');
+        groupIdOut = groupIdItemKeyArray[0];
+        itemKeyOut = groupIdItemKeyArray[1];
+        //Logger.log(groupIdIn + '->' + groupIdOut + '\n' + itemKeyIn + '->' + itemKeyOut);
+      } else {
+        groupIdOut = groupIdIn;
+        itemKeyOut = itemKeyIn;
+      }
+      result.forestType = forestType;
+    } else {
+      urlOut = result.url;
+      if (urlOut.search(validationSiteRegEx) != 0) {
+        return { status: 'error', message: 'Unexpected redirect URL ' + urlOut + ' for link ' + url + ' Script expects ' + validationSite };
+      }
 
-    const resultGroupIdItemKeyOut = getGroupIdItemKey(urlOut);
-    if (resultGroupIdItemKeyOut.status != 'ok') {
-      return resultGroupIdItemKeyOut;
+      const resultGroupIdItemKeyOut = getGroupIdItemKey(urlOut);
+      if (resultGroupIdItemKeyOut.status != 'ok') {
+        return resultGroupIdItemKeyOut;
+      }
+      //Logger.log(urlOut + ' resultGroupIdItemKeyOut=' + JSON.stringify(resultGroupIdItemKeyOut));
+      itemKeyOut = resultGroupIdItemKeyOut['itemKey'];
     }
-    //Logger.log(urlOut + ' resultGroupIdItemKeyOut=' + JSON.stringify(resultGroupIdItemKeyOut));
-    itemKeyOut = resultGroupIdItemKeyOut['itemKey'];
 
     /*   itemKeyOut = urlOut.replace(validationSiteRegEx, '');
        if (itemKeyOut.indexOf('/') != -1) {
          itemKeyOut = itemKeyOut.split('/')[0];
        }
     */
-    if (resultGroupIdItemKeyOut.linkType == '1-ref') {
+    // It was resultGroupIdItemKeyOut.linkType
+    if (resultGroupIdItemKeyIn.linkType == '1-ref') {
       url = url.replace(groupIdIn, groupIdOut);
       url = url.replace(itemKeyIn, itemKeyOut);
     } else {
@@ -537,12 +628,12 @@ function checkLink(url, validationSite, validate) {
 
   // 2022-03-25 Update Permitted libraries new version
   /* if (validationSite != '-') {
-    let permittedLibrary = false;
-    if (PERMITTED_LIBRARIES.includes(groupIdOut)) {
-      permittedLibrary = true;
-    }
-    result.permittedLibrary = permittedLibrary;
-  } */
+     let permittedLibrary = false;
+     if (PERMITTED_LIBRARIES.includes(groupIdOut)) {
+       permittedLibrary = true;
+     }
+     result.permittedLibrary = permittedLibrary;
+   } */
   // End. 2022-03-25 Update Permitted libraries new version
 
 
@@ -606,7 +697,7 @@ function detectRedirect(url, attempt) {
 
     if (response.getResponseCode() == 404) {
       //Logger.log('response.getResponseCode() == 404');
-      return { status: 'ok', type: 'BROKEN LINK' };
+      return { status: 'ok', type: 'BROKEN' };
       // }else if (response.getResponseCode() == 302 && ){
 
     } else {
@@ -626,7 +717,7 @@ function detectRedirect(url, attempt) {
         return detectRedirect(redirect, 2);
       } else {
         //Logger.log('no Redirect');
-        normalLinkType = attempt == 1 ? 'NORMAL' : 'REDIRECT';
+        normalLinkType = attempt == 1 ? 'NORMAL' : 'NORMAL_REDIRECT';
         return { status: 'ok', type: 'NORMAL LINK', url: url, normalLinkType: normalLinkType }
       }
     }
@@ -637,7 +728,7 @@ function detectRedirect(url, attempt) {
 }
 
 
-function findLinksToValidate(element, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject) {
+function findLinksToValidate(element, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI) {
 
   let text, end, indices, partAttributes, numChildren, result;
   let previousLinks = [];
@@ -647,19 +738,19 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, an
   if (elementType == 'TEXT') {
 
     // Is the text bibliography?
-    if (flagsObject.bibliographyExists === true) {
+    if (flagsObject.bibliographyExists.status === true) {
 
-      if (flagsObject.dontCollectLinksFlag === false && element.getText().includes(TEXT_TO_DETECT_START_BIB)) {
-        flagsObject.dontCollectLinksFlag = true;
+      if (flagsObject.dontCollectLinksFlag.status === false && element.getText().includes(TEXT_TO_DETECT_START_BIB)) {
+        flagsObject.dontCollectLinksFlag.status = true;
         //Logger.log('⁅bibliography:start⁆');
       }
-      if (flagsObject.dontCollectLinksFlag === true && element.getText().includes(TEXT_TO_DETECT_END_BIB)) {
-        flagsObject.dontCollectLinksFlag = false;
+      if (flagsObject.dontCollectLinksFlag.status === true && element.getText().includes(TEXT_TO_DETECT_END_BIB)) {
+        flagsObject.dontCollectLinksFlag.status = false;
         //Logger.log('⁅bibliography:end⁆');
       }
     }
 
-    if (flagsObject.dontCollectLinksFlag === true) {
+    if (flagsObject.dontCollectLinksFlag.status === true) {
       //Logger.log('dontCollectLinksFlag = true');
       return 0;
     }
@@ -678,10 +769,12 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, an
           end = indices[i + 1] - 1;
         }
 
-        result = checkHyperlinkNew(partAttributes.LINK_URL, element, indices[i], end, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks);
+        result = checkHyperlinkNew(partAttributes.LINK_URL, element, indices[i], end, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks, newForestAPIjson, newForestAPI);
         if (result.status == 'error') {
           return result;
         }
+        //}
+
       }
     }
   } else {
@@ -689,7 +782,7 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, an
     if (arrayTypes.includes(elementType)) {
       numChildren = element.getNumChildren();
       for (let i = 0; i < numChildren; i++) {
-        result = findLinksToValidate(element.getChild(i), validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject);
+        result = findLinksToValidate(element.getChild(i), validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
         if (result.status == 'error') {
           return result;
         }
@@ -697,4 +790,48 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, an
     }
   }
   return { status: 'ok' }
+}
+
+
+function getNotValidNotRedirectMark(result, flagsObject) {
+  let NOT_VALID_NOT_REDIRECT_MARK;
+  if (result.type == 'BROKEN') {
+    NOT_VALID_NOT_REDIRECT_MARK = LINK_MARK_OBJ['BROKEN_LINK_MARK'];
+    flagsObject.notiTextBroken.status = true;
+  } else {
+    if (['valid', 'valid_ambiguous', 'redirect', 'redirect_ambiguous', 'importable', 'importable_ambiguous', 'importable_redirect', 'unknown', 'invalid_syntax'].indexOf(result.forestType) == -1) {
+      NOT_VALID_NOT_REDIRECT_MARK = 'UNEXPECTED_FOREST_TYPE (' + result.forestType + ')';
+      flagsObject.notiTextUnexpectedForestType.status = true;
+    } else {
+      NOT_VALID_NOT_REDIRECT_MARK = LINK_MARK_OBJ[result.forestType.toString().toUpperCase() + '_LINK_MARK'];
+      //Logger.log('NOT_VALID_NOT_REDIRECT_MARK=' + NOT_VALID_NOT_REDIRECT_MARK);
+      flagsObject['notiText' + '_' + result.forestType].status = true;
+    }
+  }
+  return NOT_VALID_NOT_REDIRECT_MARK;
+}
+
+function bodyFootnotesLinks(doc, body, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI) {
+  // Body
+  result = findLinksToValidate(body, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
+  if (result.status == 'error') {
+    return result;
+  }
+  // End. Body
+
+  // Footnotes
+  const footnotes = doc.getFootnotes();
+  let footnote, numChildren;
+  for (let i in footnotes) {
+    footnote = footnotes[i].getFootnoteContents();
+    numChildren = footnote.getNumChildren();
+    for (let j = 0; j < numChildren; j++) {
+      result = findLinksToValidate(footnote.getChild(j), validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
+      if (result.status == 'error') {
+        return result;
+      }
+    }
+  }
+  // End. Footnotes
+  return { status: 'ok' };
 }

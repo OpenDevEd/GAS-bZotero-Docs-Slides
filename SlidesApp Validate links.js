@@ -1,4 +1,5 @@
-function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, analysekerkolinks, flagsObject) {
+function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, analysekerkolinks, flagsObject, onlyLinks, newForestAPIjson, newForestAPI) {
+  //Logger.log('1 ' + JSON.stringify(newForestAPIjson) + ' ' + newForestAPI);
   const slides = SlidesApp.getActivePresentation().getSlides();
   let bibSlideFlag, shapes, pageElement;
 
@@ -10,7 +11,7 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
       rangeElementStart = pageElement.getText().find(TEXT_TO_DETECT_START_BIB);
       rangeElementEnd = pageElement.getText().find(TEXT_TO_DETECT_END_BIB);
       if ((rangeElementStart.length > 0 && rangeElementEnd.length > 0)) {
-        Logger.log('Bibliography slide. Don\'t collect links!');
+        //Logger.log('Bibliography slide. Don\'t collect links!');
         bibSlideFlag = true;
         break;
       } else {
@@ -21,7 +22,7 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
         }
 
         links = pageElement.getText().getLinks();
-        validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks);
+        validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks, newForestAPIjson, newForestAPI);
       }
     }
 
@@ -43,7 +44,7 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
             }
 
             links = cell.getText().getLinks();
-            validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks);
+            validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks, newForestAPIjson, newForestAPI);
           }
         }
       }
@@ -61,7 +62,7 @@ function orphanedChangedLinksHelper(links, flagsObject) {
   }
 }
 
-function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks) {
+function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks, newForestAPIjson, newForestAPI) {
   let linkMarkNormal;
   const ui = SlidesApp.getUi();
 
@@ -73,12 +74,10 @@ function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validat
     // Logger.log(links[j].getTextStyle().getLink());
     // Logger.log(links[j].getTextStyle().getLink().getUrl());
     link = links[j].getTextStyle().getLink().getUrl();
-    //Logger.log('JJ ' + links[j].getStartIndex() + ' ' + links[j].getEndIndex() + ' ' + link + ' ' + links[j].asRenderedString());
-    //orphanedChangedlinksHelper(links[j], previousLinks, flagsObject, links[j].getStartIndex(), links[j].getEndIndex(), links[j].asRenderedString(), link);
-    if (link == null) {
+    if (link == null || REF_OPENDEVED_LINKS_REGEX.test(link) === false) {
       continue;
     }
-    result = checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, link, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate);
+    result = checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, link, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, newForestAPIjson, newForestAPI);
     if (result.status == 'error') {
       ui.alert(result.message);
       return 0;
@@ -87,39 +86,25 @@ function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validat
     if (validate || getparams) {
       realLinkText = links[j].asRenderedString();
 
-      if (result.type == 'NORMAL LINK') {
-        if (analysekerkolinks) {
-          if (result.normalLinkType == 'NORMAL') {
-            linkMarkNormal = NORMAL_LINK_MARK;
-            flagsObject.notiTextNormalLink = true;
-          } else {
-            linkMarkNormal = NORMAL_REDIRECT_LINK_MARK;
-            flagsObject.notiTextNormalRedirectLink = true;
-          }
-          insertMarkSlides(links[j], realLinkText, linkMarkNormal, link);
-        } else {
-          // Normal link. No need to set any mark
-          if (result.url != link) {
-            links[j].getTextStyle().setLinkUrl(result.url);
-          }
-          // End. Normal link. No need to set any mark
+      if (analysekerkolinks) {
+        if (validate && (result.type == 'NORMAL LINK' || result.forestType == 'valid' || result.forestType == 'redirect')) {
+          const validType = newForestAPI === true ? result.forestType : result.normalLinkType;
+          const VALID_OR_REDIRECT_MARK = LINK_MARK_OBJ[validType.toString().toUpperCase() + '_LINK_MARK'];
+          insertMarkSlides(links[j], realLinkText, VALID_OR_REDIRECT_MARK, link);
+          flagsObject['notiText' + '_' + validType].status = true;
         }
+      } else {
+        // Normal link. No need to set any mark
+        if (result.url != link) {
+          links[j].getTextStyle().setLinkUrl(result.url);
+        }
+        // End. Normal link. No need to set any mark        
       }
 
-      // The link is broken
-      if (result.type == 'BROKEN LINK' && validate) {
-        flagsObject.notiTextBroken = true;
-        insertMarkSlides(links[j], realLinkText, BROKEN_LINK_MARK, link);
+      if (validate && (result.type == 'BROKEN' || (newForestAPI === true && result.forestType != 'redirect' && result.forestType != 'valid'))) {
+        const NOT_VALID_NOT_REDIRECT_MARK = getNotValidNotRedirectMark(result, flagsObject);
+        insertMarkSlides(links[j], realLinkText, NOT_VALID_NOT_REDIRECT_MARK, link);
       }
-      // End. The link is broken
-
-      // The library isn't permitted
-      /* if (result.permittedLibrary == false) {
-        flagsObject.notiTextUnknownLibrary = true;
-        insertMarkSlides(links[j], realLinkText, UNKNOWN_LIBRARY_MARK, link);
-      } */
-      // End. The library isn't permitted
-
     }
   }
 }
@@ -128,40 +113,35 @@ function insertMarkSlides(linkElement, realLinkText, linkMark, url) {
   const markPlusLinkText = linkMark + realLinkText;
   linkElement.setText(markPlusLinkText);
   linkElement.getRange(markPlusLinkText.length - realLinkText.length, markPlusLinkText.length).getTextStyle().setLinkUrl(url).setBackgroundColorTransparent();
-  linkElement.getRange(0, linkMark.length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_BACKGROUND_COLOR).setForegroundColor(LINK_MARK_STYLE_FOREGROUND_COLOR).setUnderline(false);
+  linkElement.getRange(0, linkMark.length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BACKGROUND_COLOR']).setForegroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_FOREGROUND_COLOR']).setUnderline(false).setBold(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BOLD']);
 }
 
 
-function checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, url, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate) {
+function checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, url, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, newForestAPIjson, newForestAPI) {
   let result, urlWithParameters;
 
-  const urlRegEx = new RegExp('https?://ref.opendeved.net/zo/zg/[0-9]+/7/[^/]+/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)', 'i');
-  if (url.search(urlRegEx) == 0) {
-    //Logger.log('Yes----------------------');
-
-    if (alreadyCheckedLinks.hasOwnProperty(url)) {
-      result = alreadyCheckedLinks[url];
-    } else {
-      result = checkLink(url, validationSite, validate);
-      if (result.status == 'error') {
-        return result;
-      }
-      alreadyCheckedLinks[url] = result;
+  if (alreadyCheckedLinks.hasOwnProperty(url)) {
+    result = alreadyCheckedLinks[url];
+  } else {
+    result = checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI);
+    if (result.status == 'error') {
+      return result;
     }
-
-
-    if (bibReferences.indexOf(result.bibRef) == -1) {
-      bibReferences.push(result.bibRef);
-    }
-
-    if (!validate || result.type == 'BROKEN LINK') {
-      urlWithParameters = addSrcToURL(url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-    } else {
-      urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-    }
-    return { status: 'ok', type: result.type, normalLinkType: result.normalLinkType, url: urlWithParameters};
+    alreadyCheckedLinks[url] = result;
   }
-  return { status: 'ok' };
+
+  if (bibReferences.indexOf(result.bibRef) == -1) {
+    bibReferences.push(result.bibRef);
+  }
+
+  let updatedUrl;
+  if (validate && ((result.type == 'NORMAL LINK' && result.normalLinkType == 'REDIRECT') || (result.type == 'NEW FOREST API LINK' && result.forestType == 'redirect'))) {
+    updatedUrl = result.url;
+  } else {
+    updatedUrl = url;
+  }
+  urlWithParameters = addSrcToURL(updatedUrl, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
+  return { status: 'ok', type: result.type, normalLinkType: result.normalLinkType, url: urlWithParameters, forestType: result.forestType };
 }
 
 
@@ -183,7 +163,6 @@ function scanForItemKeySlides(targetRefLinks) {
             tableText = rangeElementStart[0].asRenderedString();
             libLink = /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+/.exec(tableText);
             if (libLink != null) {
-              //Logger.log('libLink ' + libLink);
               result = detectZoteroItemKeyType('https://' + libLink);
               if (result.status == 'error') {
                 result = addZoteroItemKey('', false, false, targetRefLinks);
@@ -217,9 +196,8 @@ function insertOrphanedChangedLinksMarkers(element, previousLinks, flagsObject, 
   if (previousLinks.length > 0) {
     if (!flagMarkOrphanedLinks && previousLinks[previousLinkIndex].end == start && previousLinks[previousLinkIndex].url != url && !previousLinks[previousLinkIndex].linkText.match(/^\s+$/) && !previousLinks[previousLinkIndex].linkText[0].match(/^\s+$/)) {
       flagsObject.notiTextURLChanged = true;
-      //Logger.log('flagsObject.notiTextURLChanged = true;');
-      element.insertText(0, URL_CHANGED_LINK_MARK);
-      element.getRange(0, URL_CHANGED_LINK_MARK.length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_BACKGROUND_COLOR).setForegroundColor(LINK_MARK_STYLE_FOREGROUND_COLOR).setUnderline(false);
+      element.insertText(0, LINK_MARK_OBJ['URL_CHANGED_LINK_MARK']);
+      element.getRange(0, LINK_MARK_OBJ['URL_CHANGED_LINK_MARK'].length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BACKGROUND_COLOR']).setForegroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_FOREGROUND_COLOR']).setUnderline(false).setBold(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BOLD']);
     }
   }
 
@@ -227,8 +205,8 @@ function insertOrphanedChangedLinksMarkers(element, previousLinks, flagsObject, 
 
   if (flagMarkOrphanedLinks) {
     flagsObject.notiTextOrphaned = true;
-    element.insertText(0, ORPHANED_LINK_MARK);
-    element.getRange(0, ORPHANED_LINK_MARK.length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_BACKGROUND_COLOR).setForegroundColor(LINK_MARK_STYLE_FOREGROUND_COLOR).setUnderline(false);
+    element.insertText(0, LINK_MARK_OBJ['ORPHANED_LINK_MARK']);
+    element.getRange(0, LINK_MARK_OBJ['ORPHANED_LINK_MARK'].length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BACKGROUND_COLOR']).setForegroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_FOREGROUND_COLOR']).setUnderline(false).setBold(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BOLD']);
   }
 
 }

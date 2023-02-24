@@ -1,23 +1,23 @@
 function insertUpdateBibliography() {
   if (HOST_APP == 'docs') {
-    universalInsertUpdateBibliography(false, false);
+    universalInsertUpdateBibliography(false, false, false);
   } else {
-    insertUpdateBibliographySlides(false, false);
+    insertUpdateBibliographySlides(false, false, false);
   }
 }
 
 // insertUpdateBibliography and prepareForPublishing use the function
-function universalInsertUpdateBibliography(validate, getparams) {
+function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
   const ui = DocumentApp.getUi();
-  const textToDetectStartBib = TEXT_TO_DETECT_START_BIB;
-  const textToDetectEndBib = TEXT_TO_DETECT_END_BIB;
 
   try {
     const doc = DocumentApp.getActiveDocument();
     const documentId = doc.getId();
 
-    let result = validateLinks(validate, getparams, true);
+    let result = validateLinks(validate, getparams, true, false, newForestAPI);
     let validationSite, zoteroItemKey, zoteroItemGroup, bibLink, zoteroItemKeyParameters, biblTexts = [];
+    const textToDetectStartBib = TEXT_TO_DETECT_START_BIB;
+    const textToDetectEndBib = TEXT_TO_DETECT_END_BIB;
     let bibReferences = [];
     if (result.status == 'ok') {
       validationSite = result.validationSite;
@@ -31,6 +31,7 @@ function universalInsertUpdateBibliography(validate, getparams) {
       if (result.bibReferences.length > 0) {
         bibReferences = result.bibReferences;
         // API task
+        Logger.log(bibReferences);
         resultBiblTexts = forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibReferences, documentId, targetRefLinks);
         if (resultBiblTexts.status == 'error') {
           ui.alert(resultBiblTexts.message);

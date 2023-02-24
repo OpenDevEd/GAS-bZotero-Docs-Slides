@@ -125,7 +125,7 @@ Do you wish to change the target to ‘${proposedTargetRefLinks}’?`, ui.Button
     onOpen();
     const response2 = ui.alert('You have changed the target for reference links', 'The links will now be reconfigured.', ui.ButtonSet.OK_CANCEL);
     if (response2 == ui.Button.OK) {
-      validateLinks(false, true, false);
+      validateLinks(false, true, false, false, true);
     }
   }
 

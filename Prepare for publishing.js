@@ -8,9 +8,9 @@ function prepareForPublishing() {
   }
 
   if (HOST_APP == 'docs') {
-    universalInsertUpdateBibliography(true, true);
+    universalInsertUpdateBibliography(true, true, true);
   } else {
-    insertUpdateBibliographySlides(true, true);
+    insertUpdateBibliographySlides(true, true, true);
   }
 
   removeUnderlineFromHyperlinks();
