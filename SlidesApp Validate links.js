@@ -135,7 +135,7 @@ function checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, url, validatio
   }
 
   let updatedUrl;
-  if (validate && ((result.type == 'NORMAL LINK' && result.normalLinkType == 'REDIRECT') || (result.type == 'NEW FOREST API LINK' && result.forestType == 'redirect'))) {
+  if (validate && ((result.type == 'NORMAL LINK' && result.normalLinkType == 'NORMAL_REDIRECT') || (result.type == 'NEW FOREST API LINK' && (result.forestType == 'redirect' || result.forestType == 'valid')))) {
     updatedUrl = result.url;
   } else {
     updatedUrl = url;

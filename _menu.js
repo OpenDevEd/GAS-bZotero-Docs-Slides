@@ -7,7 +7,7 @@ function onOpen(e) {
   opendevedUser = getStyleValue('local_show_advanced_menu');
 
   if (e && e.authMode == ScriptApp.AuthMode.NONE) {
-    targetMenuString = 'Target: Zotero; change to Kerko';
+    targetMenuString = 'Toggle target';
     kerkoValidationSite = '<Enter validation site>';
     zoteroItemKeyAction = 'Add/change';
     zoteroCollectionKeyAction = 'Add/change';
@@ -26,9 +26,9 @@ function onOpen(e) {
 
     targetRefLinks = getDocumentPropertyString('target_ref_links');
     if (targetRefLinks == 'kerko') {
-      targetMenuString = 'Target: Kerko; change to Zotero';
+      targetMenuString = 'Toggle target (current: Kerko)';
     } else {
-      targetMenuString = 'Target: Zotero; change to Kerko';
+      targetMenuString = 'Toggle target (current: Zotero)';
       targetRefLinks = 'zotero';
     }
     let currentZoteroCollectionKey = getDocumentPropertyString('zotero_collection_key');
@@ -49,7 +49,6 @@ function onOpen(e) {
   menu.addItem('Update/validate document links' + whereForest, 'validateLinks');
   menu.addItem('Clear validation markers', 'clearLinkMarkers');
   menu.addItem('Remove underlines from hyperlinks', 'removeUnderlineFromHyperlinks');
-  menu.addItem('Remove openin=zoteroapp from hyperlinks', 'removeOpeninZoteroapp');
   menu.addSeparator();
   menu.addSubMenu(ui.createMenu('Configure and publish')
     .addItem('Prepare for publishing', 'prepareForPublishing')
@@ -58,6 +57,8 @@ function onOpen(e) {
     .addItem(zoteroCollectionKeyAction + ' Zotero collection key for this doc', 'addZoteroCollectionKey')
     .addSeparator()
     .addItem(targetMenuString, 'targetReferenceLinks')
+    .addItem('Remove openin=zoteroapp from hyperlinks', 'removeOpeninZoteroapp')
+    .addSeparator()
     .addItem('Enter validation site', 'enterValidationSite')
   );
   menu.addSubMenu(ui.createMenu('Additional functions')

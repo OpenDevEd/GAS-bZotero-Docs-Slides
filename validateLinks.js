@@ -436,7 +436,7 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       // End. Task 9 2021-04-13
 
       let updatedUrl;
-      if (validate && ((result.type == 'NORMAL LINK' && result.normalLinkType == 'REDIRECT') || (result.type == 'NEW FOREST API LINK' && result.forestType == 'redirect'))) {
+      if (validate && ((result.type == 'NORMAL LINK' && result.normalLinkType == 'NORMAL_REDIRECT') || (result.type == 'NEW FOREST API LINK' && (result.forestType == 'redirect' || result.forestType == 'valid')))) {
         updatedUrl = result.url;
       } else {
         updatedUrl = url;
@@ -511,7 +511,7 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
   itemKeyIn = resultGroupIdItemKeyIn['itemKey'];
 
   // New code Adjustment of broken links  2021-05-03
-  let new_Url;
+  /* let new_Url;
   if (validationSite != '-') {
     if (groupIdIn == '2405685' || groupIdIn == '2129771') {
       newUrl = validationSite + itemKeyIn;
@@ -520,7 +520,7 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
     }
   } else {
     newUrl = url;
-  }
+  } */
   // Logger.log('newUrl=' + newUrl);
   // End. New code Adjustment of broken links  2021-05-03 
 
@@ -544,7 +544,7 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
       } else {
         newUrl = url;
       }
-      // Logger.log('newUrl=' + newUrl);
+      //Logger.log('newUrl=' + newUrl);
       // End. New code Adjustment of broken links  2021-05-03 
 
       //Logger.log('Old Validation!');
@@ -580,7 +580,7 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
       if (urlOut.search(validationSiteRegEx) != 0) {
         return { status: 'error', message: 'Unexpected redirect URL ' + urlOut + ' for link ' + url + ' Script expects ' + validationSite };
       }
-
+      //Logger.log('urlOut=' + urlOut);
       const resultGroupIdItemKeyOut = getGroupIdItemKey(urlOut);
       if (resultGroupIdItemKeyOut.status != 'ok') {
         return resultGroupIdItemKeyOut;
@@ -594,18 +594,21 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
          itemKeyOut = itemKeyOut.split('/')[0];
        }
     */
+
+    //Logger.log('resultGroupIdItemKeyIn.linkType=' + resultGroupIdItemKeyIn.linkType);
+
     // It was resultGroupIdItemKeyOut.linkType
-    if (resultGroupIdItemKeyIn.linkType == '1-ref') {
+    if (resultGroupIdItemKeyIn.linkType == '4-ref') {
       url = url.replace(groupIdIn, groupIdOut);
       url = url.replace(itemKeyIn, itemKeyOut);
     } else {
-      url = 'https://ref.opendeved.net/zo/zg/' + groupIdOut + '/7/' + itemKeyOut + '/';
+      // url = 'https://ref.opendeved.net/zo/zg/' + groupIdOut + '/7/' + itemKeyOut + '/';
+      url = 'https://ref.opendeved.net/g/' + groupIdOut + '/' + itemKeyOut + '/';
     }
 
     if (vancouverStyle === true) {
       url = replaceAddParameter(url, 'text', parLinkText);
     }
-
     result.url = url;
   } else {
     groupIdOut = groupIdIn;
@@ -652,11 +655,23 @@ function getGroupIdItemKey(url) {
     const regExTypeOne = new RegExp('https?://ref.opendeved.net/zo/zg/([0-9]+)/7/([^/\?]+)/?', 'i');
     const regExTypeTwo = new RegExp('/lib/([^/\?]+)/?', 'i');
     const regExTypeThree = new RegExp('id=([A-Za-z0-9]+)', 'i');
+    const regExTypeFour = new RegExp('https?://ref.opendeved.net/g/([0-9]+)/([^/\?]+)/?', 'i');
+    const regExTypeFive = new RegExp('zotero.org/groups/([0-9]+)/([^/\?]+)/items/([^/\?]+)/library', 'i');
 
     if (regExTypeOne.test(link)) {
       linkType = '1-ref';
       result = regExTypeOne.exec(link);
       itemKey = result[2];
+      groupId = result[1];
+    } else if (regExTypeFour.test(link)) {
+      linkType = '4-ref';
+      result = regExTypeFour.exec(link);
+      itemKey = result[2];
+      groupId = result[1];
+    } else if (regExTypeFive.test(link)) {
+      linkType = '5-zotero';
+      result = regExTypeFive.exec(link);
+      itemKey = result[3];
       groupId = result[1];
     } else if (regExTypeTwo.test(link)) {
       linkType = '2-docs';
@@ -667,12 +682,12 @@ function getGroupIdItemKey(url) {
       result = regExTypeThree.exec(link);
       itemKey = result[1];
     }
-    //Logger.log('linkType=' + linkType);
+    //Logger.log('linkType=' + linkType + ' itemKey=' + itemKey + ' groupId=' + groupId);
 
     if (linkType == '2-docs' || linkType == '3-search-list') {
       for (let style in styles) {
         if (styles[style]['kerkoValidationSite'] != null) {
-          validationSiteRegEx = new RegExp(styles[style]['kerkoValidationSite'], 'i');
+          validationSiteRegEx = new RegExp(styles[style]['kerkoValidationSite'].replace('https://', 'https?://'), 'i');
           if (validationSiteRegEx.test(link)) {
             groupId = styles[style]['group_id'];
             break;

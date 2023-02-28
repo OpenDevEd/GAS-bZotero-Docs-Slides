@@ -226,5 +226,5 @@ function getEditors() {
 
 let REF_OPENDEVED_LINKS_REGEX;
 function refOpenDevEdLinksRegEx() {
-  return new RegExp('https?://ref.opendeved.net/zo/zg/[0-9]+/7/[^/]+/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)', 'i');
+  return new RegExp('https?://ref.opendeved.net/(g/[0-9]+/[^/]+|zo/zg/[0-9]+/7/[^/]+)/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)|https?://(www.|)zotero.org/groups/[0-9]+/[^/]+/items/[^/]+/library', 'i');
 }
