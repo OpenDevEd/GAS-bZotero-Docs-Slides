@@ -566,10 +566,29 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
       const forestType = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn].type;
       //Logger.log('forestType=' + forestType);
       if (forestType == 'redirect') {
-        const groupIdItemKeyArray = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn]['data'][0].split(':');
-        groupIdOut = groupIdItemKeyArray[0];
-        itemKeyOut = groupIdItemKeyArray[1];
-        //Logger.log(groupIdIn + '->' + groupIdOut + '\n' + itemKeyIn + '->' + itemKeyOut);
+        // 2023-03-21 update
+        const dataGroupIdItemKey = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn]['data'][0];
+        if (/^[0-9]+:[A-Za-z0-9]+$/.test(dataGroupIdItemKey)) {
+          // Logger.log('Old format');
+          // Start. 2405685:I9KQL5GV format
+          const groupIdItemKeyArray = dataGroupIdItemKey.split(':');
+          groupIdOut = groupIdItemKeyArray[0];
+          itemKeyOut = groupIdItemKeyArray[1];
+          // End. 2405685:I9KQL5GV format
+        } else {
+          // Logger.log('New format');
+          // Format https://ref.opendeved.net/g/2405685/8V49PM4G?openin=zoteroapp
+          const resultGroupIdItemKeyOut = getGroupIdItemKey(dataGroupIdItemKey);
+          if (resultGroupIdItemKeyOut.status != 'ok') {
+            return resultGroupIdItemKeyOut;
+          }
+          //Logger.log(url + ' resultGroupIdItemKeyIn=' + JSON.stringify(resultGroupIdItemKeyIn));
+          groupIdOut = resultGroupIdItemKeyOut['groupId'];
+          itemKeyOut = resultGroupIdItemKeyOut['itemKey'];
+          // End. Format https://ref.opendeved.net/g/2405685/8V49PM4G?openin=zoteroapp
+        }
+        // Logger.log(groupIdIn + '->' + groupIdOut + '\n' + itemKeyIn + '->' + itemKeyOut);
+        // End. 2023-03-21 update
       } else {
         groupIdOut = groupIdIn;
         itemKeyOut = itemKeyIn;
