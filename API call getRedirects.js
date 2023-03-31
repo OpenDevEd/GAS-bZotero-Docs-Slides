@@ -1,24 +1,32 @@
+function userCanCallForestAPI() {
+  const activeUser = Session.getActiveUser().getEmail();
+  const activeUserDomain = String(activeUser).split('@')[1];
+  if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net') {
+    return false;
+  }else{
+    return true;
+  }
+}
+
 function forestAPIcallGetRedirects(validationSite, bibReferences, docOrPresoId) {
   try {
 
-let groupId, validationSiteRegEx;
-      for (let style in styles) {
-        if (styles[style]['kerkoValidationSite'] != null) {
-          validationSiteRegEx = new RegExp(styles[style]['kerkoValidationSite'], 'i');
-          if (validationSiteRegEx.test(validationSite)) {
-            groupId = styles[style]['group_id'];
-            break;
-          }
+    let groupId, validationSiteRegEx;
+    for (let style in styles) {
+      if (styles[style]['kerkoValidationSite'] != null) {
+        validationSiteRegEx = new RegExp(styles[style]['kerkoValidationSite'], 'i');
+        if (validationSiteRegEx.test(validationSite)) {
+          groupId = styles[style]['group_id'];
+          break;
         }
       }
+    }
 
     const groupkeys = bibReferences.join(',');
     const activeUser = Session.getActiveUser().getEmail();
     const token = BIBAPI_TOKEN;
 
-    const activeUserDomain = String(activeUser).split('@')[1];
-
-    if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net') {
+    if (userCanCallForestAPI() === false) {
       return { status: 'error', message: 'Access denied! You can\'t use Forest API.' };
     }
 

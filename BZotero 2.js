@@ -76,7 +76,6 @@ function scanForItemKey(targetRefLinks) {
   return result;
 }
 
-
 function targetReferenceLinks() {
   const ui = getUi();
   let result;
@@ -125,7 +124,8 @@ Do you wish to change the target to ‘${proposedTargetRefLinks}’?`, ui.Button
     onOpen();
     const response2 = ui.alert('You have changed the target for reference links', 'The links will now be reconfigured.', ui.ButtonSet.OK_CANCEL);
     if (response2 == ui.Button.OK) {
-      validateLinks(false, true, false, false, true);
+      const newForestAPI = userCanCallForestAPI(); 
+      validateLinks(false, true, false, false, newForestAPI);
     }
   }
 
@@ -187,6 +187,7 @@ function addZoteroItemKey(errorText = '', optional = false, bibliography = false
 
 // addZoteroItemKey, scanForItemKey use the function
 function detectZoteroItemKeyType(zotero_item) {
+  zotero_item = zotero_item.trim();
   const zoteroItemRegEx = new RegExp('zotero://select/groups/[0-9]+/items/[^/]+', 'i');
   const etechhubItemRegEx = new RegExp('https://docs.edtechhub.org/lib/[^/]+', 'i');
   const opendevedItemRegEx = new RegExp('https://docs.opendeved.net/lib/[^/]+', 'i');
@@ -209,7 +210,11 @@ function detectZoteroItemKeyType(zotero_item) {
 
   let setDP = false;
 
-  if (zoteroItemRegEx.test(zotero_item)) {
+  if (/^[0-9]+:[A-Z0-9]+$/.test(zotero_item)) {
+    groupIdItemKey = zotero_item.split(':');
+    zotero_item = 'zotero://select/groups/' + groupIdItemKey[0] + '/items/' + groupIdItemKey[1];
+    setDP = true;
+  } else if (zoteroItemRegEx.test(zotero_item)) {
     setDP = true;
   } else if (etechhubItemRegEx.test(zotero_item)) {
     zotero_item = 'zotero://select/groups/2405685/items/' + itemKey;
@@ -225,7 +230,7 @@ function detectZoteroItemKeyType(zotero_item) {
     return { status: 'ok' };
   } else {
     //addZoteroItemKey('Error! Wrong Zotero Item Key\n', optional, bibliography);
-    return { status: 'error', message: 'Error! Wrong Zotero Item Key\n' };
+    return { status: 'error', message: 'Error! Wrong Zotero Item Key ' + zotero_item + '\n' };
   }
 
 }

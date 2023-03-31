@@ -275,7 +275,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
         return 0;
       }
 
-      //Logger.log('bibReferences ' + bibReferences);
+      //Logger.log('bibReferences = ' + bibReferences);
 
       // Forest API getRedirects
       result = forestAPIcallGetRedirects(validationSite, bibReferences, doc.getId());
@@ -304,7 +304,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
     if (newForestAPI === true) {
       validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validateFalse, getparamsFalse, markorphanedlinksFalse, analysekerkolinksFalse, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
 
-      //Logger.log('bibReferences ' + bibReferences);
+      Logger.log('Slides bibReferences ' + bibReferences);
       //  Forest API getRedirects
       result = forestAPIcallGetRedirects(validationSite, bibReferences, SlidesApp.getActivePresentation().getId());
       if (result.status == 'error') {
@@ -356,36 +356,58 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
 function checkHyperlinkNew(url, element, start, end, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, previousLinks, newForestAPIjson, newForestAPI) {
   //Logger.log(validate + ' ' + getparams + ' ' + markorphanedlinks);
 
-  let linkText, previousLinkIndex, flagMarkOrphanedLinks = false, linkMarkNormal;
+  let linkText, previousLinkIndex, flagMarkOrphanedLinks = false;
+  const fullElementText = element.getText();
+
+  // Is the link inside a marker or not?
+  let linkInsideMarkerFlag = false;
+  if (/<.*LINK:.*>/.test(fullElementText)) {
+    const markersWithLinks = fullElementText.match(/<[^<>]*>/g);
+    if (markersWithLinks != null) {
+      let startSearch = 0;
+      let markerStartIndex, markerEndIndex;
+      for (let r in markersWithLinks) {
+        markerStartIndex = fullElementText.indexOf(markersWithLinks[r], startSearch);
+        markerEndIndex = markerStartIndex + markersWithLinks[r].length;
+        startSearch = markerEndIndex;
+        if (markerStartIndex < start && end < markerEndIndex) {
+          //Logger.log('The link is inside marker ' + markersWithLinks[r]);
+          linkInsideMarkerFlag = true;
+          break;
+        } /* else {
+          Logger.log('The link isnt inside marker ' + markersWithLinks[r]);
+        } */
+      }
+    } /* else {
+      Logger.log('Markers werent found.');
+    } */
+  } /* else {
+    Logger.log('The paragraph doesnt contain markers with links inside.');
+  } */
+  // End. Is the link inside a marker or not?
+
+
   if (markorphanedlinks) {
-    linkText = element.getText().substr(start, end - start + 1);
+    linkText = fullElementText.substr(start, end - start + 1);
 
     // If there is an isolated whitespace (or more whitespaces) with a link
     if (linkText.match(/^\s+$/)) {
-      //brokenOrphanedLinks.push({ segmentId: segmentId, startIndex: item.startIndex, text: ORPHANED_LINK_MARK });
-      // element.insertText(start, ORPHANED_LINK_MARK).setAttributes(start, start + ORPHANED_LINK_MARK.length - 1, LINK_MARK_STYLE_NEW);
       flagMarkOrphanedLinks = true;
     }
     // End. If there is an isolated whitespace (or more whitespaces) with a link
 
     previousLinkIndex = previousLinks.length - 1;
     if (previousLinks.length > 0) {
-      // if (item.startIndex == previousLinks[previousLinkIndex].endIndex && previousLinks[previousLinkIndex].url != url && !previousText.match(/^\s+$/) && !item.textRun.content[0].match(/^\s+$/) && currentParagraph == previousLinks[previousLinkIndex].paragraphNumber) {
-      //   brokenOrphanedLinks.push({ segmentId: segmentId, startIndex: item.startIndex, text: URL_CHANGED_LINK_MARK });
-      // }
       if (!flagMarkOrphanedLinks && previousLinks[previousLinkIndex].start == end + 1 && previousLinks[previousLinkIndex].url != url && !previousLinks[previousLinkIndex].linkText.match(/^\s+$/) && !previousLinks[previousLinkIndex].linkText[0].match(/^\s+$/)) {
         element.insertText(end + 1, LINK_MARK_OBJ['URL_CHANGED_LINK_MARK']).setLinkUrl(end + 1, end + LINK_MARK_OBJ['URL_CHANGED_LINK_MARK'].length, null).setAttributes(end + 1, end + LINK_MARK_OBJ['URL_CHANGED_LINK_MARK'].length, LINK_MARK_STYLE_NEW);
         flagsObject.notiTextURLChanged.status = true;
-        //element.setLinkUrl(start, end, urlWithParameters);
       }
     }
 
     previousLinks.push({ url: url, start: start, end: end, linkText: linkText });
-    //Logger.log(previousLinks);
   }
 
-  if (REF_OPENDEVED_LINKS_REGEX.test(url)) {
-    //Logger.log('Yes----------------------');
+  if (linkInsideMarkerFlag === false && REF_OPENDEVED_LINKS_REGEX.test(url)) {
 
     if (alreadyCheckedLinks.hasOwnProperty(url)) {
       result = alreadyCheckedLinks[url];
@@ -395,28 +417,13 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
         return result;
       }
       alreadyCheckedLinks[url] = result;
-
-      //Logger.log('alreadyCheckedLinks' + JSON.stringify(alreadyCheckedLinks));
     }
 
     if (bibReferences.indexOf(result.bibRef) == -1) {
       bibReferences.push(result.bibRef);
     }
-    // result.type == 'NEW FOREST API LINK'
-    // ['valid', 'valid_ambiguous', 'redirect', 'redirect_ambiguous', 'importable', 'unknown', 'invalid_syntax']
+
     if (analysekerkolinks) {
-      // Marks valid links
-      /* if (result.type == 'NORMAL LINK' && validate) {
-         if (result.normalLinkType == 'NORMAL') {
-           linkMarkNormal = NORMAL_LINK_MARK;
-           flagsObject.notiTextNormalLink.status = true;
-         } else {
-           linkMarkNormal = NORMAL_REDIRECT_LINK_MARK;
-           flagsObject.notiTextNormalRedirectLink.status = true;
-         }
-         element.insertText(start, linkMarkNormal).setLinkUrl(start, start + linkMarkNormal.length - 1, null).setAttributes(start, start + linkMarkNormal.length - 1, LINK_MARK_STYLE_NEW);
-       } */
-      // End. Marks valid links
       // Marks valid links
       if (validate && (result.type == 'NORMAL LINK' || result.forestType == 'valid' || result.forestType == 'redirect')) {
         const validType = newForestAPI === true ? result.forestType : result.normalLinkType;
@@ -427,14 +434,6 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       // End. Marks valid links
     } else {
       // Usual Update/validate links via Kerko
-      // Task 9 2021-04-13
-      // if (!validate || result.type == 'BROKEN') {
-      //   urlWithParameters = addSrcToURL(url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-      // } else {
-      //   urlWithParameters = addSrcToURL(result.url, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-      // }
-      // End. Task 9 2021-04-13
-
       let updatedUrl;
       if (validate && ((result.type == 'NORMAL LINK' && result.normalLinkType == 'NORMAL_REDIRECT') || (result.type == 'NEW FOREST API LINK' && (result.forestType == 'redirect' || result.forestType == 'valid')))) {
         updatedUrl = result.url;
@@ -444,18 +443,28 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
       urlWithParameters = addSrcToURL(updatedUrl, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
 
       if (validate || getparams) {
-        //Logger.log('element.setLinkUrl(start, end, urlWithParameters); ' + urlWithParameters);
         element.setLinkUrl(start, end, urlWithParameters);
         element.setUnderline(start, end, false);
       }
       // End. Usual Update/validate links via Kerko
     }
 
-
-    // 2021-05-11 Update
     if (validate && (result.type == 'BROKEN' || (newForestAPI === true && result.forestType != 'redirect' && result.forestType != 'valid'))) {
-      const NOT_VALID_NOT_REDIRECT_MARK = getNotValidNotRedirectMark(result, flagsObject);
+      let [NOT_VALID_NOT_REDIRECT_MARK, expectLinksInsideMarker, linkTextArray, linkStart] = getNotValidNotRedirectMark(result, flagsObject);
+
+      // Inserts marker or marker with text(s) of link(s)
       element.insertText(start, NOT_VALID_NOT_REDIRECT_MARK).setLinkUrl(start, start + NOT_VALID_NOT_REDIRECT_MARK.length - 1, null).setAttributes(start, start + NOT_VALID_NOT_REDIRECT_MARK.length - 1, LINK_MARK_STYLE_NEW);
+
+      // Inserts links inside marker
+      if (expectLinksInsideMarker === true) {
+        linkStart = linkStart + start;
+        for (let u in result.data) {
+          linkEnd = linkStart + linkTextArray[u].length - 1;
+          element.setLinkUrl(linkStart, linkEnd, result.data[u]);
+          linkStart = linkEnd + 3;
+        }
+      }
+      // End. Inserts links inside marker
     }
 
   }
@@ -469,15 +478,14 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
 
 
 function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI) {
-  //Logger.log('4 ' + JSON.stringify(newForestAPIjson) + ' ' + newForestAPI);
   let urlOut, itemKeyOut;
   let itemKeyIn, groupIdIn;
-  let vancouverStyle, resultVancouverStyle, parLinkText;
 
+  // Preserves parameter text if the link has vancouver style
+  let vancouverStyle, resultVancouverStyle, parLinkText;
   if (/text=.+/i.test(url)) {
     vancouverStyle = true;
     resultVancouverStyle = /text=([^&]+)/i.exec(url);
-    //Logger.log('result=' + result);
     if (resultVancouverStyle == null) {
       vancouverStyle = false;
     } else {
@@ -486,52 +494,30 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
   } else {
     vancouverStyle = false;
   }
+  // End. Preserves parameter text if the link has vancouver style
 
-  let validationSiteRegEx = new RegExp(validationSite, 'i');
+  // let validationSiteRegEx = new RegExp(validationSite, 'i');
 
-  /*
-    let opendevedRgEx = new RegExp('http[s]*://ref.opendeved.net/zo/zg/', 'i');
-  
-    opendevedPartLink = url.replace(opendevedRgEx, '');
-    let array = opendevedPartLink.split('/');
-    groupIdIn = array[0];
-    itemKeyIn = array[2];
-    const questionPos = itemKeyIn.indexOf('?');
-    if (questionPos != -1) {
-      itemKeyIn = itemKeyIn.slice(0, questionPos);
-    }
-  */
-
+  // Retrieves the group id and the item key from URL
   const resultGroupIdItemKeyIn = getGroupIdItemKey(url);
   if (resultGroupIdItemKeyIn.status != 'ok') {
     return resultGroupIdItemKeyIn;
   }
-  //Logger.log(url + ' resultGroupIdItemKeyIn=' + JSON.stringify(resultGroupIdItemKeyIn));
   groupIdIn = resultGroupIdItemKeyIn['groupId'];
   itemKeyIn = resultGroupIdItemKeyIn['itemKey'];
-
-  // New code Adjustment of broken links  2021-05-03
-  /* let new_Url;
-  if (validationSite != '-') {
-    if (groupIdIn == '2405685' || groupIdIn == '2129771') {
-      newUrl = validationSite + itemKeyIn;
-    } else {
-      newUrl = validationSite + groupIdIn + ':' + itemKeyIn;
-    }
-  } else {
-    newUrl = url;
-  } */
-  // Logger.log('newUrl=' + newUrl);
-  // End. New code Adjustment of broken links  2021-05-03 
+  // End. Retrieves the group id and the item key from URL
 
   // 2021-05-11 Update
+  // Function checkLink will return object result
   let result = new Object();
+
   if (validate) {
     if (newForestAPI === true) {
-      //Logger.log('New Validation!');
+      // newForestAPI === true validation via Forest API
       result.type = 'NEW FOREST API LINK';
       result.url = url;
     } else {
+      // newForestAPI === false validation via Google Apps Script
 
       // New code Adjustment of broken links  2021-05-03
       let new_Url;
@@ -544,17 +530,13 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
       } else {
         newUrl = url;
       }
-      //Logger.log('newUrl=' + newUrl);
       // End. New code Adjustment of broken links  2021-05-03 
 
-      //Logger.log('Old Validation!');
       result = detectRedirect(newUrl, 1);
-      if (result.status == 'error') {
-        return result;
-      }
+      if (result.status == 'error') return result;
     }
   } else {
-    //Logger.log('Without validation');
+    // If we don't need validation, type of the link will be 'NORMAL LINK'
     result = { status: 'ok', type: 'NORMAL LINK' };
   }
   // End. 2021-05-11 Update
@@ -563,103 +545,61 @@ function checkLink(url, validationSite, validate, newForestAPIjson, newForestAPI
 
   if (validate && (result.type == 'NORMAL LINK' || result.type == 'NEW FOREST API LINK') && validationSite != '-') {
     if (newForestAPI === true) {
+      // Forest API workflow
       const forestType = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn].type;
-      //Logger.log('forestType=' + forestType);
+      const dataGroupIdItemKey = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn]['data'];
+      result.forestType = forestType;
       if (forestType == 'redirect') {
-        // 2023-03-21 update
-        const dataGroupIdItemKey = newForestAPIjson.items[groupIdIn + ':' + itemKeyIn]['data'][0];
-        if (/^[0-9]+:[A-Za-z0-9]+$/.test(dataGroupIdItemKey)) {
-          // Logger.log('Old format');
-          // Start. 2405685:I9KQL5GV format
-          const groupIdItemKeyArray = dataGroupIdItemKey.split(':');
-          groupIdOut = groupIdItemKeyArray[0];
-          itemKeyOut = groupIdItemKeyArray[1];
-          // End. 2405685:I9KQL5GV format
-        } else {
-          // Logger.log('New format');
-          // Format https://ref.opendeved.net/g/2405685/8V49PM4G?openin=zoteroapp
-          const resultGroupIdItemKeyOut = getGroupIdItemKey(dataGroupIdItemKey);
-          if (resultGroupIdItemKeyOut.status != 'ok') {
-            return resultGroupIdItemKeyOut;
-          }
-          //Logger.log(url + ' resultGroupIdItemKeyIn=' + JSON.stringify(resultGroupIdItemKeyIn));
-          groupIdOut = resultGroupIdItemKeyOut['groupId'];
-          itemKeyOut = resultGroupIdItemKeyOut['itemKey'];
-          // End. Format https://ref.opendeved.net/g/2405685/8V49PM4G?openin=zoteroapp
-        }
+        // Retrieves group id and item key from array data of Forest API response
+        // https://ref.opendeved.net/g/2405685/8V49PM4G?openin=zoteroapp gives group id 2405685 and item key 8V49PM4G
+        const resultGroupIdItemKeyOut = getGroupIdItemKey(dataGroupIdItemKey[0]);
+        if (resultGroupIdItemKeyOut.status != 'ok') return resultGroupIdItemKeyOut;
+        groupIdOut = resultGroupIdItemKeyOut['groupId'];
+        itemKeyOut = resultGroupIdItemKeyOut['itemKey'];
+        // End. // Retrieves group id and item key from array data of Forest API response
         // Logger.log(groupIdIn + '->' + groupIdOut + '\n' + itemKeyIn + '->' + itemKeyOut);
-        // End. 2023-03-21 update
       } else {
+        // If the link isn't redirect, we don't need to change group id and item key 
         groupIdOut = groupIdIn;
         itemKeyOut = itemKeyIn;
+        result.data = dataGroupIdItemKey;
       }
-      result.forestType = forestType;
+      // End. Forest API workflow
     } else {
+      // Validate document links V1 workflow
       urlOut = result.url;
+      const validationSiteRegEx = new RegExp(validationSite, 'i');
       if (urlOut.search(validationSiteRegEx) != 0) {
         return { status: 'error', message: 'Unexpected redirect URL ' + urlOut + ' for link ' + url + ' Script expects ' + validationSite };
       }
-      //Logger.log('urlOut=' + urlOut);
       const resultGroupIdItemKeyOut = getGroupIdItemKey(urlOut);
       if (resultGroupIdItemKeyOut.status != 'ok') {
         return resultGroupIdItemKeyOut;
       }
-      //Logger.log(urlOut + ' resultGroupIdItemKeyOut=' + JSON.stringify(resultGroupIdItemKeyOut));
       itemKeyOut = resultGroupIdItemKeyOut['itemKey'];
+      // End. Validate document links V1 workflow
     }
 
-    /*   itemKeyOut = urlOut.replace(validationSiteRegEx, '');
-       if (itemKeyOut.indexOf('/') != -1) {
-         itemKeyOut = itemKeyOut.split('/')[0];
-       }
-    */
-
-    //Logger.log('resultGroupIdItemKeyIn.linkType=' + resultGroupIdItemKeyIn.linkType);
-
-    // It was resultGroupIdItemKeyOut.linkType
     if (resultGroupIdItemKeyIn.linkType == '4-ref') {
       url = url.replace(groupIdIn, groupIdOut);
       url = url.replace(itemKeyIn, itemKeyOut);
     } else {
-      // url = 'https://ref.opendeved.net/zo/zg/' + groupIdOut + '/7/' + itemKeyOut + '/';
       url = 'https://ref.opendeved.net/g/' + groupIdOut + '/' + itemKeyOut + '/';
     }
 
+    // Adds parameter text if the link has vancouver style
     if (vancouverStyle === true) {
       url = replaceAddParameter(url, 'text', parLinkText);
     }
+    // End. Adds parameter text if the link has vancouver style
+
     result.url = url;
   } else {
+    // If we don't need validation or validationSite == '-', we don't need to change group id and item key 
     groupIdOut = groupIdIn;
     itemKeyOut = itemKeyIn;
   }
 
-  // [OLD] 2021-05-14 Update
-  //permittedLibraries
-  // let permittedLibrary = false;
-  // for (let i in permittedLibraries) {
-  //   if (validationSite.indexOf(permittedLibraries[i].Domain) != -1) {
-  //     if (permittedLibraries[i].Permitted.indexOf(grourIdOut) != -1) {
-  //       permittedLibrary = true;
-  //       break;
-  //     }
-  //   }
-  // }
-  // result.permittedLibrary = permittedLibrary;
-  // End. [OLD] 2021-05-14 Update
-
-  // 2022-03-25 Update Permitted libraries new version
-  /* if (validationSite != '-') {
-     let permittedLibrary = false;
-     if (PERMITTED_LIBRARIES.includes(groupIdOut)) {
-       permittedLibrary = true;
-     }
-     result.permittedLibrary = permittedLibrary;
-   } */
-  // End. 2022-03-25 Update Permitted libraries new version
-
-
-  // BZotero 2 Task 2
   result.bibRef = groupIdOut + ':' + itemKeyOut;
 
   return result;
@@ -696,10 +636,12 @@ function getGroupIdItemKey(url) {
       linkType = '2-docs';
       result = regExTypeTwo.exec(link);
       itemKey = result[1];
-    } else {
+    } else if (regExTypeThree.test(link)) {
       linkType = '3-search-list';
       result = regExTypeThree.exec(link);
       itemKey = result[1];
+    } else {
+      return { status: 'error', message: 'Error in getGroupIdItemKey: unexpected format of link ' + link };
     }
     //Logger.log('linkType=' + linkType + ' itemKey=' + itemKey + ' groupId=' + groupId);
 
@@ -807,7 +749,6 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, an
         if (result.status == 'error') {
           return result;
         }
-        //}
 
       }
     }
@@ -829,6 +770,9 @@ function findLinksToValidate(element, validate, getparams, markorphanedlinks, an
 
 function getNotValidNotRedirectMark(result, flagsObject) {
   let NOT_VALID_NOT_REDIRECT_MARK;
+  let expectLinksInsideMarker = false;
+  let linkStart;
+  const linkTextArray = [];
   if (result.type == 'BROKEN') {
     NOT_VALID_NOT_REDIRECT_MARK = LINK_MARK_OBJ['BROKEN_LINK_MARK'];
     flagsObject.notiTextBroken.status = true;
@@ -837,12 +781,34 @@ function getNotValidNotRedirectMark(result, flagsObject) {
       NOT_VALID_NOT_REDIRECT_MARK = 'UNEXPECTED_FOREST_TYPE (' + result.forestType + ')';
       flagsObject.notiTextUnexpectedForestType.status = true;
     } else {
+
       NOT_VALID_NOT_REDIRECT_MARK = LINK_MARK_OBJ[result.forestType.toString().toUpperCase() + '_LINK_MARK'];
       //Logger.log('NOT_VALID_NOT_REDIRECT_MARK=' + NOT_VALID_NOT_REDIRECT_MARK);
       flagsObject['notiText' + '_' + result.forestType].status = true;
+
+
+      // Ambiguous and importable links inside markers. Part 1
+      expectLinksInsideMarker = ['valid_ambiguous', 'redirect_ambiguous', 'importable', 'importable_ambiguous', 'importable_redirect'].includes(result.forestType);
+
+      if (expectLinksInsideMarker === true) {
+        if (result.data && result.data.length > 0) {
+          linkStart = NOT_VALID_NOT_REDIRECT_MARK.length + 1;
+          // Converts https://ref.opendeved.net/g/2405685/CYESNSWU?openin=zoteroapp to 2405685:CYESNSWU
+          result.data.forEach(link => linkTextArray.push(link.replace('https://ref.opendeved.net/g/', '').replace('?openin=zoteroapp', '').replace('/', ':')));
+          // Adds text(s) of link(s) inside marker
+          NOT_VALID_NOT_REDIRECT_MARK = NOT_VALID_NOT_REDIRECT_MARK.replace('>', ': ' + linkTextArray.join(', ') + '>');
+        } else {
+          // Forest API returns empty array data
+          // bZotero won't insert links inside marker
+          expectLinksInsideMarker = false;
+        }
+      }
+      // End. Ambiguous and importable links inside markers. Part 1
+
+
     }
   }
-  return NOT_VALID_NOT_REDIRECT_MARK;
+  return [NOT_VALID_NOT_REDIRECT_MARK, expectLinksInsideMarker, linkTextArray, linkStart];
 }
 
 function bodyFootnotesLinks(doc, body, validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI) {

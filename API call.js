@@ -1,12 +1,11 @@
 function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibReferences, docOrPresoId, target, mode = 'bib') {
   try {
+    // Logger.log(bibReferences);
     const groupkeys = bibReferences.join(',');
     const activeUser = Session.getActiveUser().getEmail();
     const token = BIBAPI_TOKEN;
 
-    const activeUserDomain = String(activeUser).split('@')[1];
-
-    if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net') {
+    if (userCanCallForestAPI() === false) {
       return { status: 'error', message: 'Access denied! You can\'t use Forest API.' };
     }
 

@@ -68,7 +68,7 @@ function onOpen(e) {
     .addItem('Show item keys', 'showItemKeys')
     .addItem('Show links & urls', 'validateLinksTestHelper')
     .addSeparator()
-    .addItem('Convert ZoteroTransfer markers to BZotero', 'zoteroTransferDoc')
+    .addItem('Convert ZoteroTransfer markers to bZotero', 'zoteroTransferDoc')
     .addSeparator()
     .addItem('Remove country markers (⇡Country: )', 'removeCountryMarkers')
     .addSeparator()

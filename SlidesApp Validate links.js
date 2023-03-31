@@ -1,5 +1,4 @@
 function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, getparams, markorphanedlinks, analysekerkolinks, flagsObject, onlyLinks, newForestAPIjson, newForestAPI) {
-  //Logger.log('1 ' + JSON.stringify(newForestAPIjson) + ' ' + newForestAPI);
   const slides = SlidesApp.getActivePresentation().getSlides();
   let bibSlideFlag, shapes, pageElement;
 
@@ -21,7 +20,8 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
           orphanedChangedLinksHelper(links, flagsObject);
         }
 
-        links = pageElement.getText().getLinks();
+        links = collectLinksShapeTable(pageElement);
+
         validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks, newForestAPIjson, newForestAPI);
       }
     }
@@ -43,7 +43,7 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
               orphanedChangedLinksHelper(links, flagsObject);
             }
 
-            links = cell.getText().getLinks();
+            links = collectLinksShapeTable(cell);
             validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks, newForestAPIjson, newForestAPI);
           }
         }
@@ -52,6 +52,32 @@ function validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zote
   }
 }
 
+
+function collectLinksShapeTable(pageElement) {
+  let links = [];
+  let insideMarker = false;
+  const fullElementText = pageElement.getText().asString();
+  if (/<.*LINK:.*>/.test(fullElementText)) {
+    // Logger.log('The paragraph contains markers with links inside.');
+    const textRanges = pageElement.getText().getRuns();
+    for (let h in textRanges) {
+      if (insideMarker === true && /.*>/.test(textRanges[h].asString())) {
+        insideMarker = false;
+      }
+      if (insideMarker === false && />?<.*LINK:/.test(textRanges[h].asString())) {
+        insideMarker = true;
+      }
+      if (insideMarker === false && textRanges[h].getTextStyle().hasLink() === true) {
+        links.push(textRanges[h]);
+      }
+      //Logger.log(textRanges[h].asString() + ' ' + insideMarker + ' ' + textRanges[h].getTextStyle().hasLink());
+    }
+  } else {
+    // Logger.log('The paragraph doesn\'t contain markers with links inside.');
+    links = pageElement.getText().getLinks();
+  }
+  return links;
+}
 
 function orphanedChangedLinksHelper(links, flagsObject) {
   previousLinks = [];
@@ -63,10 +89,7 @@ function orphanedChangedLinksHelper(links, flagsObject) {
 }
 
 function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validate, flagsObject, getparams, analysekerkolinks, newForestAPIjson, newForestAPI) {
-  let linkMarkNormal;
   const ui = SlidesApp.getUi();
-
-
   for (let j = links.length - 1; j >= 0; j--) {
     // Logger.log('TXT=' + links[j].asRenderedString());
     // Logger.log(links[j]);
@@ -102,18 +125,34 @@ function validateSlidesHelper(links, bibReferences, alreadyCheckedLinks, validat
       }
 
       if (validate && (result.type == 'BROKEN' || (newForestAPI === true && result.forestType != 'redirect' && result.forestType != 'valid'))) {
-        const NOT_VALID_NOT_REDIRECT_MARK = getNotValidNotRedirectMark(result, flagsObject);
-        insertMarkSlides(links[j], realLinkText, NOT_VALID_NOT_REDIRECT_MARK, link);
+        const [NOT_VALID_NOT_REDIRECT_MARK, expectLinksInsideMarker, linkTextArray, linkStart] = getNotValidNotRedirectMark(result, flagsObject);
+        insertMarkSlides(links[j], realLinkText, NOT_VALID_NOT_REDIRECT_MARK, link, expectLinksInsideMarker, linkTextArray, linkStart, result.data);
       }
     }
   }
 }
 
-function insertMarkSlides(linkElement, realLinkText, linkMark, url) {
+function insertMarkSlides(linkElement, realLinkText, linkMark, url, expectLinksInsideMarker, linkTextArray, linkStart, markerLinksArray) {
   const markPlusLinkText = linkMark + realLinkText;
+
+  // Inserts marker or marker with text(s) of link(s)
   linkElement.setText(markPlusLinkText);
-  linkElement.getRange(markPlusLinkText.length - realLinkText.length, markPlusLinkText.length).getTextStyle().setLinkUrl(url).setBackgroundColorTransparent();
-  linkElement.getRange(0, linkMark.length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BACKGROUND_COLOR']).setForegroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_FOREGROUND_COLOR']).setUnderline(false).setBold(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BOLD']);
+
+  // Sets url of validated link
+  linkElement.getRange(markPlusLinkText.length - realLinkText.length, markPlusLinkText.length).getTextStyle().setLinkUrl(url).setUnderline(false).setBackgroundColorTransparent();
+
+  // Applies marker style
+  linkElement.getRange(0, linkMark.length).getTextStyle().setBackgroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BACKGROUND_COLOR']).setForegroundColor(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_FOREGROUND_COLOR']).setBold(LINK_MARK_STYLE_OBJ['LINK_MARK_STYLE_BOLD']);
+
+  // Inserts links inside marker
+  if (expectLinksInsideMarker === true) {
+    for (let u in markerLinksArray) {
+      linkEnd = linkStart + linkTextArray[u].length;
+      linkElement.getRange(linkStart, linkEnd).getTextStyle().setLinkUrl(markerLinksArray[u]).setUnderline(false);
+      linkStart = linkEnd + 2;
+    }
+  }
+  // End. Inserts links inside marker
 }
 
 
@@ -141,7 +180,7 @@ function checkHyperlinkSlides(bibReferences, alreadyCheckedLinks, url, validatio
     updatedUrl = url;
   }
   urlWithParameters = addSrcToURL(updatedUrl, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey);
-  return { status: 'ok', type: result.type, normalLinkType: result.normalLinkType, url: urlWithParameters, forestType: result.forestType };
+  return { status: 'ok', type: result.type, normalLinkType: result.normalLinkType, url: urlWithParameters, forestType: result.forestType, data: result.data };
 }
 
 

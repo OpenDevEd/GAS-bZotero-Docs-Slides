@@ -2,18 +2,19 @@ function clearLinkMarkers() {
   const ui = getUi();
   try {
     collectLinkMarks();
+    // Converts link markers to regular explessions
+    for (let mark in LINK_MARK_OBJ) {
+      if (['valid_ambiguous', 'redirect_ambiguous', 'importable', 'importable_ambiguous', 'importable_redirect'].includes(mark.replace('_LINK_MARK', '').toLowerCase())) {
+        LINK_MARK_OBJ[mark] = LINK_MARK_OBJ[mark].replace('>', ':?[^<>]*>');
+      }
+    }
+    // End. Converts link markers to regular explessions
+
     if (HOST_APP == 'docs') {
       const doc = DocumentApp.getActiveDocument();
       for (let mark in LINK_MARK_OBJ) {
         doc.replaceText(LINK_MARK_OBJ[mark], '');
       }
-      /* doc.replaceText(ORPHANED_LINK_MARK, '');
-       doc.replaceText(URL_CHANGED_LINK_MARK, '');
-       doc.replaceText(BROKEN_LINK_MARK, '');
-       //doc.replaceText(UNKNOWN_LIBRARY_MARK, '');
-       doc.replaceText(NORMAL_LINK_MARK, '');
-       doc.replaceText(NORMAL_REDIRECT_LINK_MARK, '');
- */
       const footnotes = doc.getFootnotes();
       let footnote;
       for (let i in footnotes) {
@@ -21,12 +22,6 @@ function clearLinkMarkers() {
         for (let mark in LINK_MARK_OBJ) {
           footnote.replaceText(LINK_MARK_OBJ[mark], '');
         }
-        // footnote.replaceText(ORPHANED_LINK_MARK, '');
-        // footnote.replaceText(URL_CHANGED_LINK_MARK, '');
-        // footnote.replaceText(BROKEN_LINK_MARK, '');
-        // //footnote.replaceText(UNKNOWN_LIBRARY_MARK, '');
-        // footnote.replaceText(NORMAL_LINK_MARK, '');
-        // footnote.replaceText(NORMAL_REDIRECT_LINK_MARK, '');
       }
     } else {
       // Slides part
@@ -35,14 +30,11 @@ function clearLinkMarkers() {
         slides[i].getPageElements().forEach(function (pageElement) {
           if (pageElement.getPageElementType() == SlidesApp.PageElementType.SHAPE) {
             for (let mark in LINK_MARK_OBJ) {
-              pageElement.asShape().getText().replaceAllText(LINK_MARK_OBJ[mark], '');
+              const textRangesArray = pageElement.asShape().getText().find(LINK_MARK_OBJ[mark]);
+              if (textRangesArray.length > 0) {
+                textRangesArray.forEach(textRange => textRange.clear());
+              }
             }
-            // pageElement.asShape().getText().replaceAllText(ORPHANED_LINK_MARK, '');
-            // pageElement.asShape().getText().replaceAllText(URL_CHANGED_LINK_MARK, '');
-            // pageElement.asShape().getText().replaceAllText(BROKEN_LINK_MARK, '');
-            // //pageElement.asShape().getText().replaceAllText(UNKNOWN_LIBRARY_MARK, '');
-            // pageElement.asShape().getText().replaceAllText(NORMAL_LINK_MARK, '');
-            // pageElement.asShape().getText().replaceAllText(NORMAL_REDIRECT_LINK_MARK, '');
           } else if (pageElement.getPageElementType() == SlidesApp.PageElementType.TABLE) {
 
             const table = pageElement.asTable();
@@ -53,14 +45,11 @@ function clearLinkMarkers() {
                 cell = table.getRow(m).getCell(k);
                 if (cell.getMergeState() == 'HEAD' || cell.getMergeState() == 'NORMAL') {
                   for (let mark in LINK_MARK_OBJ) {
-                    cell.getText().replaceAllText(LINK_MARK_OBJ[mark], '');
+                    const textRangesArray = cell.getText().find(LINK_MARK_OBJ[mark]);
+                    if (textRangesArray.length > 0) {
+                      textRangesArray.forEach(textRange => textRange.clear());
+                    }
                   }
-                  // cell.getText().replaceAllText(ORPHANED_LINK_MARK, '');
-                  // cell.getText().replaceAllText(URL_CHANGED_LINK_MARK, '');
-                  // cell.getText().replaceAllText(BROKEN_LINK_MARK, '');
-                  // //cell.getText().replaceAllText(UNKNOWN_LIBRARY_MARK, '');
-                  // cell.getText().replaceAllText(NORMAL_LINK_MARK, '');
-                  // cell.getText().replaceAllText(NORMAL_REDIRECT_LINK_MARK, '');
                 }
               }
             }
