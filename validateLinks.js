@@ -240,6 +240,8 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
   };
   // End. The object helps to track types of found links
 
+  clearLinkMarkers();
+
   let result, onlyLinks, newForestAPIjson;
 
   prepareBibMarkers();
