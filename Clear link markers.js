@@ -1,3 +1,7 @@
+function alertSuggestedFootnoteBug(i) {
+  alert("Footnote has no contents. Footnote number = " + (+i + 1) + ". This appears to be a GDocs bug that happens if the footnote is suggested text only.");
+}
+
 function clearLinkMarkers() {
   const ui = getUi();
   try {
@@ -19,6 +23,10 @@ function clearLinkMarkers() {
       let footnote;
       for (let i in footnotes) {
         footnote = footnotes[i].getFootnoteContents();
+        if (footnote == null) {
+          //alertSuggestedFootnoteBug(i);
+          continue;
+        }
         for (let mark in LINK_MARK_OBJ) {
           footnote.replaceText(LINK_MARK_OBJ[mark], '');
         }
@@ -80,6 +88,10 @@ function clearWarningMarkers() {
       let footnote;
       for (let i in footnotes) {
         footnote = footnotes[i].getFootnoteContents();
+        if (footnote == null) {
+          alertSuggestedFootnoteBug(i);
+          continue;
+        }
         footnote.replaceText(regEx, '');
         footnote.replaceText(regEx2, '');
       }

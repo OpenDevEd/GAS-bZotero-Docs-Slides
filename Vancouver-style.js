@@ -22,6 +22,10 @@ function vancouverStyle(toDo) {
     let footnote, numChildren;
     for (let i in footnotes) {
       footnote = footnotes[i].getFootnoteContents();
+      if (footnote == null) {
+        alertSuggestedFootnoteBug(i);
+        continue;
+      }
       numChildren = footnote.getNumChildren();
       for (let j = 0; j < numChildren; j++) {
         vancouverStyleFindAllLinks(toDo, footnote.getChild(j), 'footnotes', linksArray, linkNumbers, urlRegEx);
@@ -39,7 +43,7 @@ function vancouverStyle(toDo) {
           toDoArray = [];
           runs = pageElement.asShape().getText().getRuns();
           for (let j in runs) {
-            
+
             // Logger.log(runs[j].getStartIndex());
             // Logger.log(runs[j].asString());
             // Logger.log(runs[j].getLinks());
@@ -48,7 +52,7 @@ function vancouverStyle(toDo) {
             for (let m in links) {
               //linksArray.push(links[j].getTextStyle().getLink().getUrl());
               url = links[m].getTextStyle().getLink().getUrl();
-              
+
               // linkText = links[m].getTextStyle().getLink();
               linkText = runs[j].asString();
               vancouverOrAPA7(toDo, toDoArray, url, start = 0, end = linkText.length - 1, urlRegEx, partAttributes = links[m], text = linkText, linkNumbers, linksArray, source = 'slides');

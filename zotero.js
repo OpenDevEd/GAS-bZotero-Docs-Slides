@@ -48,7 +48,7 @@ function OLDclearZwarnings() {
   singleReplace("《warning: [^《》]*?》", "", true, false, null);
   //  singleReplace("<\/?pn>","",true,false, null);
   //  singleReplace("\\|\\:","|",true,false, null);
-  singleReplace(UL+"|"+UR, "", true, false, null);
+  singleReplace(UL + "|" + UR, "", true, false, null);
 };
 
 function maxifyCitationsDocs() {
@@ -155,7 +155,7 @@ function zoteroPackUnpack(pack, promptForLibrary, showWarningsWhenUnpacking, van
   };
   var advice = "";
   if (!pack) {
-    advice = " Following unpacking, check the document for symbols "+UL+", "+UR+", ⇡ and 《warning》 and then run cleanup.";
+    advice = " Following unpacking, check the document for symbols " + UL + ", " + UR + ", ⇡ and 《warning》 and then run cleanup.";
   };
   alert("Number of citations that were Zotero-" + string + ": " + total + " (" + rounds + " rounds)." + advice);
 };
@@ -235,8 +235,8 @@ function packZotero(promptForLibrary, vancouverStyle, value) {
         urlpart = "NA/" + text;
       };
 
-// Adds to URL zoteroItemKey and zoteroCollectionKey of current Doc
-let newUrl = addCurrentKeys(urlpart);
+      // Adds to URL zoteroItemKey and zoteroCollectionKey of current Doc
+      let newUrl = addCurrentKeys(urlpart);
       // // New 2021-04-24
       // let newUrl = redirectTarget + urlpart;
 
@@ -313,7 +313,12 @@ function restoreZoteroLinks() {
   var footnote = DocumentApp.getActiveDocument().getFootnotes();
   for (var i in footnote) {
     // alert(i);
-    var paragraphs = footnote[i].getFootnoteContents().getParagraphs();
+    var footnoteContents = footnote[i].getFootnoteContents();
+    if (footnoteContents == null) {
+      alertSuggestedFootnoteBug(i);
+      continue;
+    }
+    var paragraphs = footnoteContents.getParagraphs();
     if (paragraphs) {
       for (var i = 0; i < paragraphs.length; i++) {
         var element = paragraphs[i];
@@ -351,15 +356,15 @@ function fixZoteroLinkPresentation() {
   */
   // The following singleReplaceKeepUrl work on footnotes too
   // Fix wrong sequences:
-  singleReplaceKeepUrl("(⇡"+UL, "("+UL, false, 1, 0);
-  singleReplaceKeepUrl("⇡"+UL, UL, false, 0, 0);
-  singleReplaceKeepUrl(UL+"(⇡", "("+UL, false, 1, 0);
-  singleReplaceKeepUrl(UL+"⇡", UL, false, 0, 0);
+  singleReplaceKeepUrl("(⇡" + UL, "(" + UL, false, 1, 0);
+  singleReplaceKeepUrl("⇡" + UL, UL, false, 0, 0);
+  singleReplaceKeepUrl(UL + "(⇡", "(" + UL, false, 1, 0);
+  singleReplaceKeepUrl(UL + "⇡", UL, false, 0, 0);
   // This may or may not be correct: We dont know!
   // singleReplaceKeepUrl(")"+UR, UR+")",false,0,-1);
   // remove ⇡ in correct sequences:
-  singleReplaceKeepUrl("("+UL+"⇡", "("+UL, false, 1, 0);
-  singleReplaceKeepUrl(UL+"⇡", UL, false, 0, 0);
+  singleReplaceKeepUrl("(" + UL + "⇡", "(" + UL, false, 1, 0);
+  singleReplaceKeepUrl(UL + "⇡", UL, false, 0, 0);
   // actually - this cannot occur! The error was in 06c...       eat.setLinkUrl(pin, pout, null);
   // actuqlly, seems it can.
   // This is correct sequence, but the url placement may not be.
@@ -377,7 +382,7 @@ function zoteroUnpack(promptUser, showWarningsWhenUnpacking) {
   var doc = DocumentApp.getActiveDocument();
   var body = doc.getBody();
   // Should first search for ""+UL+"",""+UR+""
-  var rangeElem = body.findText(UL+"|"+UR);
+  var rangeElem = body.findText(UL + "|" + UR);
   if (1 == 1) {
     // !promptUser || rangeElem === null || getConfirmationFromUser("There are already "+UL+"..."+UR+" markers in the document. Proceed?")) {
     // Mark links
@@ -386,7 +391,7 @@ function zoteroUnpack(promptUser, showWarningsWhenUnpacking) {
     // Turn links into Zotero expressions.
     // var returnx = getConfirmationFromUser("Press OK to convert links to Zotero experssions.");
     var counter = 0;
-    var regu = UL+"⇡?[^"+UL+UR+"]*?"+UR;
+    var regu = UL + "⇡?[^" + UL + UR + "]*?" + UR;
     var p = getParagraphsInBodyAndFootnotes(false, true);
     for (var i = 0; i < p.length; i++) {
       var mybody = p[i];

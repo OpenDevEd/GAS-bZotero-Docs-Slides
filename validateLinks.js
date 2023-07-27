@@ -826,6 +826,12 @@ function bodyFootnotesLinks(doc, body, validate, getparams, markorphanedlinks, a
   let footnote, numChildren;
   for (let i in footnotes) {
     footnote = footnotes[i].getFootnoteContents();
+    if (footnote == null) {
+      if (onlyLinks === false) {
+        alertSuggestedFootnoteBug(i);
+      }
+      continue;
+    }
     numChildren = footnote.getNumChildren();
     for (let j = 0; j < numChildren; j++) {
       result = findLinksToValidate(footnote.getChild(j), validate, getparams, markorphanedlinks, analysekerkolinks, bibReferences, alreadyCheckedLinks, validationSite, targetRefLinks, zoteroItemKeyParameters, zoteroCollectionKey, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
