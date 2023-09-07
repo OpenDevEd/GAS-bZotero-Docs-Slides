@@ -120,10 +120,18 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
     while (nextEl && !notBibPars) {
       nextEl = nextEl.getNextSibling();
       if (nextEl != null) {
-        if (nextEl.asText().getText() == textToDetectEndBib) {
-          notBibPars = true;
+
+        // UNSUPPORTED can't be cast to TEXT
+        if (nextEl.getType() != 'UNSUPPORTED') {
+          if (nextEl.asText().getText().trim() == textToDetectEndBib) {
+            notBibPars = true;
+          }
         }
-        nextEl.getPreviousSibling().removeFromParent();
+
+        // Don't remove section break
+        if (nextEl.getPreviousSibling().getType() != 'UNSUPPORTED') {
+          nextEl.getPreviousSibling().removeFromParent();
+        }
       }
     }
     // End. Delete paragraphs between [bibliography:start] and [bibliography:end]
