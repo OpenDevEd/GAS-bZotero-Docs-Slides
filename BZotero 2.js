@@ -54,10 +54,11 @@ function scanForItemKey(targetRefLinks) {
   }
   for (let i = 0; i < tablesLimit; i++) {
     // if (tables.length == 0) break;
-    rangeElement = tables[i].findText('docs.edtechhub.org/lib/[^/]+|docs.opendeved.net/lib/[^/]+');
+    // rangeElement = tables[i].findText('docs.edtechhub.org/lib/[^/]+|docs.opendeved.net/lib/[^/]+');
+    rangeElement = tables[i].findText('(docs.edtechhub.org|docs.opendeved.net|maths.educationevidence.io)/lib/[^/]+');
     if (rangeElement) {
       tableText = rangeElement.getElement().asText().getText();
-      libLink = /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+/.exec(tableText);
+      libLink = /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+|maths.educationevidence.io\/lib\/[a-zA-Z0-9]+/.exec(tableText);
       if (libLink != null) {
         result = detectZoteroItemKeyType('https://' + libLink);
         if (result.status == 'error') {
@@ -124,7 +125,7 @@ Do you wish to change the target to ‘${proposedTargetRefLinks}’?`, ui.Button
     onOpen();
     const response2 = ui.alert('You have changed the target for reference links', 'The links will now be reconfigured.', ui.ButtonSet.OK_CANCEL);
     if (response2 == ui.Button.OK) {
-      const newForestAPI = userCanCallForestAPI(); 
+      const newForestAPI = userCanCallForestAPI();
       validateLinks(false, true, false, false, newForestAPI);
     }
   }
@@ -191,6 +192,7 @@ function detectZoteroItemKeyType(zotero_item) {
   const zoteroItemRegEx = new RegExp('zotero://select/groups/[0-9]+/items/[^/]+', 'i');
   const etechhubItemRegEx = new RegExp('https://docs.edtechhub.org/lib/[^/]+', 'i');
   const opendevedItemRegEx = new RegExp('https://docs.opendeved.net/lib/[^/]+', 'i');
+  const mathseducationevidenceItemRegEx = new RegExp('https://maths.educationevidence.io/lib/[^/]+', 'i');
 
   // Previous
   // const itemKey = zotero_item.split('/')[4];
@@ -221,6 +223,9 @@ function detectZoteroItemKeyType(zotero_item) {
     setDP = true;
   } else if (opendevedItemRegEx.test(zotero_item)) {
     zotero_item = 'zotero://select/groups/2129771/items/' + itemKey;
+    setDP = true;
+  } else if (mathseducationevidenceItemRegEx.test(zotero_item)) {
+    zotero_item = 'zotero://select/groups/5168324/items/' + itemKey;
     setDP = true;
   }
 

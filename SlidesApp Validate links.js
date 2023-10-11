@@ -197,10 +197,12 @@ function scanForItemKeySlides(targetRefLinks) {
       slides[i].getPageElements().forEach(function (pageElement) {
         if (pageElement.getPageElementType() == SlidesApp.PageElementType.SHAPE) {
 
-          rangeElementStart = pageElement.asShape().getText().find('docs.edtechhub.org/lib/[^/]+|docs.opendeved.net/lib/[^/]+');
+          // rangeElementStart = pageElement.asShape().getText().find('docs.edtechhub.org/lib/[^/]+|docs.opendeved.net/lib/[^/]+');
+          rangeElementStart = pageElement.asShape().getText().find('(docs.edtechhub.org|docs.opendeved.net|maths.educationevidence.io)/lib/[^/]+');
           if (rangeElementStart.length > 0) {
             tableText = rangeElementStart[0].asRenderedString();
-            libLink = /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+/.exec(tableText);
+            // libLink = /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+/.exec(tableText);
+            libLink = /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+|maths.educationevidence.io\/lib\/[a-zA-Z0-9]+/.exec(tableText);
             if (libLink != null) {
               result = detectZoteroItemKeyType('https://' + libLink);
               if (result.status == 'error') {

@@ -52,6 +52,15 @@ const styles = {
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://docs.edtechhub.org/lib/',
     "group_id": "2405685"
+  },
+  "educationevidence":
+  {
+    "name": "ZoteroDocs (maths.educationevidence.io)",
+    "default_everybody": false,
+    "default_for": "maths.educationevidence.io",
+    "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
+    "kerkoValidationSite": 'https://maths.educationevidence.io/lib/',
+    "group_id": "5168324"
   }
 };
 
@@ -226,5 +235,5 @@ function getEditors() {
 
 let REF_OPENDEVED_LINKS_REGEX;
 function refOpenDevEdLinksRegEx() {
-  return new RegExp('https?://ref.opendeved.net/(g/[0-9]+/[^/]+|zo/zg/[0-9]+/7/[^/]+)/?|https?://docs.(edtechhub.org|opendeved.net)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)|https?://(www.|)zotero.org/groups/[0-9]+/[^/]+/items/[^/]+/library', 'i');
+  return new RegExp('https?://ref.opendeved.net/(g/[0-9]+/[^/]+|zo/zg/[0-9]+/7/[^/]+)/?|https?://(docs.edtechhub.org|docs.opendeved.net|maths.educationevidence.io)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)|https?://(www.|)zotero.org/groups/[0-9]+/[^/]+/items/[^/]+/library', 'i');
 }
