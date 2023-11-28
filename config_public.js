@@ -101,23 +101,23 @@ const LINK_MARK_STYLE_NEW = new Object();
 
 // Changes a value of ACTIVE_STYLE to style that is default for DocumentProperties kerko_validation_site
 function updateStyle() {
-
-  try {
-    const ui = DocumentApp.getUi();
-    HOST_APP = 'docs';
-  }
-  catch (error) {
-    //Logger.log(error);
-  }
-  if (HOST_APP == null) {
-    try {
-      const ui = SlidesApp.getUi();
-      HOST_APP = 'slides';
-    }
-    catch (error) {
-      //Logger.log(error);
-    }
-  }
+  HOST_APP = 'docs';
+  // try {
+  //   const ui = DocumentApp.getUi();
+  //   HOST_APP = 'docs';
+  // }
+  // catch (error) {
+  //   //Logger.log(error);
+  // }
+  // if (HOST_APP == null) {
+  //   try {
+  //     const ui = SlidesApp.getUi();
+  //     HOST_APP = 'slides';
+  //   }
+  //   catch (error) {
+  //     //Logger.log(error);
+  //   }
+  // }
 
   try {
     const kerkoValidationSite = getDocumentPropertyString('kerko_validation_site');
@@ -165,7 +165,7 @@ function updateStyle() {
 updateStyle();
 //Logger.log('Test 3' + ACTIVE_STYLE);
 
-function prepareBibMarkers(){
+function prepareBibMarkers() {
   TEXT_TO_DETECT_START_BIB = getStyleValue('TEXT_TO_DETECT_START_BIB');
   TEXT_TO_DETECT_END_BIB = getStyleValue('TEXT_TO_DETECT_END_BIB');
 }
@@ -233,7 +233,44 @@ function getEditors() {
   }
 }
 
+// Retrieves domain and folder from kerkoValidationSite
+// For example, gets https://docs.opendeved.net/lib/, returns docs.opendeved.net/lib
+function retrieveDomain(kerkoValidationSite) {
+  const result = new RegExp('https?://(.+)/?', 'i').exec(kerkoValidationSite);
+  if (!result?.[1]) {
+    throw new Error('Unexpected kerkoValidationSite ' + kerkoValidationSite + '\nAsk admin to check object styles in config_public.gs file.');
+  } else {
+    return result[1].endsWith('/') ? result[1].slice(0, -1) : result[1];
+  }
+}
+
+let CUSTOM_DOMAINS_ARRAY;
+// Retrieves kerko validation sites from the object style
+// Returns array, something like [docs.opendeved.net/lib, docs.edtechhub.org/lib, maths.educationevidence.io/lib]
+function getCustomDomainsArray() {
+  if (CUSTOM_DOMAINS_ARRAY != null){
+    return CUSTOM_DOMAINS_ARRAY;
+  }  
+  const domains = [];
+  for (let styleName in styles) {
+    if (styles[styleName]['kerkoValidationSite']) {
+      domains.push(retrieveDomain(styles[styleName]['kerkoValidationSite']));
+    }
+  }
+  CUSTOM_DOMAINS_ARRAY = domains;
+  return domains;
+}
+
 let REF_OPENDEVED_LINKS_REGEX;
 function refOpenDevEdLinksRegEx() {
-  return new RegExp('https?://ref.opendeved.net/(g/[0-9]+/[^/]+|zo/zg/[0-9]+/7/[^/]+)/?|https?://(docs.edtechhub.org|docs.opendeved.net|maths.educationevidence.io)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)|https?://(www.|)zotero.org/groups/[0-9]+/[^/]+/items/[^/]+/library', 'i');
+  let customDomainsPart = '';
+  const domains = getCustomDomainsArray();
+  if (domains.length > 0) {
+    customDomainsPart = '|https?://(' + domains.join('|') + ')(/[^/\?]+/?|.*id=[A-Za-z0-9]+)';
+  }
+  const regExpText = 'https?://ref.opendeved.net/(g/[0-9]+/[^/]+|zo/zg/[0-9]+/7/[^/]+)/?' + customDomainsPart + '|https?://(www.|)zotero.org/groups/[0-9]+/[^/]+/items/[^/]+/library';
+
+  // Example of regular expression returned by the function refOpenDevEdLinksRegEx:
+  // new RegExp('https?://ref.opendeved.net/(g/[0-9]+/[^/]+|zo/zg/[0-9]+/7/[^/]+)/?|https?://(docs.edtechhub.org|docs.opendeved.net|maths.educationevidence.io)/lib(/[^/\?]+/?|.*id=[A-Za-z0-9]+)|https?://(www.|)zotero.org/groups/[0-9]+/[^/]+/items/[^/]+/library', 'i');
+  return new RegExp(regExpText, 'i');
 }

@@ -52,22 +52,25 @@ function scanForItemKey(targetRefLinks) {
   if (tables.length < 2) {
     tablesLimit = tables.length;
   }
-  for (let i = 0; i < tablesLimit; i++) {
-    // if (tables.length == 0) break;
-    // rangeElement = tables[i].findText('docs.edtechhub.org/lib/[^/]+|docs.opendeved.net/lib/[^/]+');
-    rangeElement = tables[i].findText('(docs.edtechhub.org|docs.opendeved.net|maths.educationevidence.io)/lib/[^/]+');
-    if (rangeElement) {
-      tableText = rangeElement.getElement().asText().getText();
-      libLink = /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+|maths.educationevidence.io\/lib\/[a-zA-Z0-9]+/.exec(tableText);
-      if (libLink != null) {
-        result = detectZoteroItemKeyType('https://' + libLink);
-        if (result.status == 'error') {
-          result = addZoteroItemKey('', false, false, targetRefLinks);
-          return result;
+  if (tablesLimit > 0) {
+    const domains = getCustomDomainsArray();
+    for (let i = 0; i < tablesLimit; i++) {
+      // Example of regEx in the line below: '(docs.edtechhub.org/lib|docs.opendeved.net/lib|maths.educationevidence.io/lib)/[^/]+'
+      rangeElement = tables[i].findText('(' + domains.join('|') + ')/[^/]+');
+      if (rangeElement) {
+        tableText = rangeElement.getElement().asText().getText();
+        // Example of regEx in the line below: /docs.edtechhub.org\/lib\/[a-zA-Z0-9]+|docs.opendeved.net\/lib\/[a-zA-Z0-9]+|maths.educationevidence.io\/lib\/[a-zA-Z0-9]+/
+        libLink = new RegExp(domains.join('/[a-zA-Z0-9]+|') + '/[a-zA-Z0-9]+').exec(tableText);
+        if (libLink != null) {
+          result = detectZoteroItemKeyType('https://' + libLink);
+          if (result.status == 'error') {
+            result = addZoteroItemKey('', false, false, targetRefLinks);
+            return result;
+          }
+          foundFlag = true;
         }
-        foundFlag = true;
+        break;
       }
-      break;
     }
   }
 
@@ -190,9 +193,6 @@ function addZoteroItemKey(errorText = '', optional = false, bibliography = false
 function detectZoteroItemKeyType(zotero_item) {
   zotero_item = zotero_item.trim();
   const zoteroItemRegEx = new RegExp('zotero://select/groups/[0-9]+/items/[^/]+', 'i');
-  const etechhubItemRegEx = new RegExp('https://docs.edtechhub.org/lib/[^/]+', 'i');
-  const opendevedItemRegEx = new RegExp('https://docs.opendeved.net/lib/[^/]+', 'i');
-  const mathseducationevidenceItemRegEx = new RegExp('https://maths.educationevidence.io/lib/[^/]+', 'i');
 
   // Previous
   // const itemKey = zotero_item.split('/')[4];
@@ -218,15 +218,27 @@ function detectZoteroItemKeyType(zotero_item) {
     setDP = true;
   } else if (zoteroItemRegEx.test(zotero_item)) {
     setDP = true;
-  } else if (etechhubItemRegEx.test(zotero_item)) {
-    zotero_item = 'zotero://select/groups/2405685/items/' + itemKey;
-    setDP = true;
-  } else if (opendevedItemRegEx.test(zotero_item)) {
-    zotero_item = 'zotero://select/groups/2129771/items/' + itemKey;
-    setDP = true;
-  } else if (mathseducationevidenceItemRegEx.test(zotero_item)) {
-    zotero_item = 'zotero://select/groups/5168324/items/' + itemKey;
-    setDP = true;
+  } else {
+    const domains = getCustomDomainsArray();
+    for (let i in domains) {
+      const textRegEx = 'https://' + domains[i] + '/[^/]+';
+      const regEx = new RegExp(textRegEx, 'i');
+      if (regEx.test(zotero_item)) {
+        const thisStyle = Object.keys(styles).find(key => {
+          return styles[key]['kerkoValidationSite'] && styles[key]['kerkoValidationSite'].includes(domains[i]);
+        });
+        if (!thisStyle) {
+          throw new Error('Style containing kerkoValidationSite ' + domains[i] + ' wasn\'t found.\nAsk admin to check object styles in config_public.gs file.');
+        }  
+        const groupId = styles[thisStyle]['group_id'];
+        if (!groupId) {
+          throw new Error('Key group_id wasn\'t found in settings of ' + domains[i] + '\nAsk admin to check object styles in config_public.gs file.');
+        }        
+        zotero_item = 'zotero://select/groups/' + groupId + '/items/' + itemKey;
+        setDP = true;
+        break;
+      }
+    }
   }
 
   if (setDP) {
