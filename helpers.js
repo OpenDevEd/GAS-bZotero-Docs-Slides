@@ -23,11 +23,11 @@ function getPropertyObj(str) {
 // If no selection is made AND onePara=true, the paragraph in which the cursor is, is returned.
 // If no selection is made AND onePara=false, all paragraphs are returned.
 function getParagraphs(onePara) {
-  return getParagraphsInBodyAndFootnotes(onePara,false);
+  return getParagraphsInBodyAndFootnotes(onePara, false);
 };
 
-function getParagraphsInBodyAndFootnotes(onePara,getFootnoteParas) {
-  return getParagraphsInBodyAndFootnotesExtended(onePara,true,getFootnoteParas);
+function getParagraphsInBodyAndFootnotes(onePara, getFootnoteParas) {
+  return getParagraphsInBodyAndFootnotesExtended(onePara, true, getFootnoteParas);
 };
 
 /*
@@ -38,7 +38,7 @@ getParagraphsInBodyAndFootnotesExtended(onePara,getBodyParas,getFootnoteParas)
 getParagraphsInBodyAndFootnotesExtended(true,true,false);
 */
 
-function getParagraphsInBodyAndFootnotesExtended(onePara,getBodyParas,getFootnoteParas) {
+function getParagraphsInBodyAndFootnotesExtended(onePara, getBodyParas, getFootnoteParas) {
   var paraout = [];
   var selection = DocumentApp.getActiveDocument().getSelection();
   if (selection) {
@@ -60,7 +60,7 @@ function getParagraphsInBodyAndFootnotesExtended(onePara,getBodyParas,getFootnot
           var paragraph = elem.asListItem();
           paraout.push(paragraph);
         } else {
-          DocumentApp.getUi().alert("Cursor is in object that is not paragraph or list item:" + element.getElement().getType() );
+          DocumentApp.getUi().alert("Cursor is in object that is not paragraph or list item:" + element.getElement().getType());
         }
       }
     }
@@ -82,7 +82,7 @@ function getParagraphsInBodyAndFootnotesExtended(onePara,getBodyParas,getFootnot
       } else if (element.getType() == DocumentApp.ElementType.LIST_ITEM) {
         paragraph = element.asListItem();
         paraout.push(paragraph);
-      } else {      
+      } else {
         DocumentApp.getUi().alert("Cursor is in object that is not paragraph or list item: " + element.getParent().getType() + ", parent of " + element.getType());
       }
     } else {
@@ -100,7 +100,7 @@ function getParagraphsInBodyAndFootnotesExtended(onePara,getBodyParas,getFootnot
         var footnote = doc.getFootnotes();
         if (footnote) {
           // alert("Getting fn: "+footnote.length);
-          for(var i in footnote){
+          for (var i in footnote) {
             if (footnote[i].getFootnoteContents()) {
               var paragraphs = footnote[i].getFootnoteContents().getParagraphs();
               if (paragraphs) {
@@ -111,8 +111,8 @@ function getParagraphsInBodyAndFootnotesExtended(onePara,getBodyParas,getFootnot
                 };
               };
             } else {
-              var j = i+1;
-              alert("Footnote has no contents. Footnote number= "+j+". This appears to be a GDocs bug that happens if the footnote is suggested text only.");
+              var j = i + 1;
+              alert("Footnote has no contents. Footnote number= " + j + ". This appears to be a GDocs bug that happens if the footnote is suggested text only.");
             };
           }
         } else {
@@ -127,7 +127,7 @@ function getParagraphsInBodyAndFootnotesExtended(onePara,getBodyParas,getFootnot
 }
 
 
-function getValueFromUser(title,text, defaultOK, defaultCancel, defaultClose) {
+function getValueFromUser(title, text, defaultOK, defaultCancel, defaultClose) {
   text = text || "Please enter a value.";
   defaultOK = defaultOK || "";
   defaultCancel = defaultCancel || null;
@@ -137,14 +137,14 @@ function getValueFromUser(title,text, defaultOK, defaultCancel, defaultClose) {
     title = text;
     title = "BUtils";
   };
-  var result = DocumentApp.getUi().prompt(title,text, DocumentApp.getUi().ButtonSet.OK_CANCEL);
+  var result = DocumentApp.getUi().prompt(title, text, DocumentApp.getUi().ButtonSet.OK_CANCEL);
   // Process the user's response:
   if (result.getSelectedButton() == DocumentApp.getUi().Button.OK) {
     var res = result.getResponseText();
     // DocumentApp.getUi().alert('Result: '+res);
     if (res == "" && defaultOK) {
       return defaultOK;
-    } else {      
+    } else {
       return res;
     };
   } else if (result.getSelectedButton() == DocumentApp.getUi().Button.CANCEL) {
@@ -172,15 +172,19 @@ function getConfirmationFromUser(text) {
 
 
 function alert(text) {
-  DocumentApp.getUi().alert(text);
+  if (HOST_APP == 'docs') {
+    DocumentApp.getUi().alert(text);
+  } else {
+    SlidesApp.getUi().alert(text);
+  }
 };
 
-function alertv(text,myvariable) {
-  DocumentApp.getUi().alert(text+" = "+JSON.stringify(myvariable));
+function alertv(text, myvariable) {
+  DocumentApp.getUi().alert(text + " = " + JSON.stringify(myvariable));
 };
 
-function onlyUnique(value, index, self) { 
-    return self.indexOf(value) === index;
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
 };
 
 function getColourByName(name) {
