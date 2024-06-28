@@ -74,6 +74,9 @@ function onOpen(e) {
     .addSeparator()
     .addItem('Convert to numbered references (\'Vancouver\')', 'applyVancouverStyle')
     .addItem('Convert to text references (\'APA7\')', 'applyAPA7Style')
+    .addSeparator()
+    .addItem('Author (Year) ↔ Author, Year', 'modifyLinkParenthesis')
+
     // Remove for now:  
     //.addItem('znocountry highlight missing country info', 'highlightMissingCountryMarker')
     // Remove for now
