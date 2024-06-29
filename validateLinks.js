@@ -392,9 +392,21 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
   if (markorphanedlinks) {
     linkText = fullElementText.substr(start, end - start + 1);
 
+
     // If there is an isolated whitespace (or more whitespaces) with a link
     if (linkText.match(/^\s+$/)) {
-      flagMarkOrphanedLinks = true;
+      const linkBeforeSpace = start > 0 ? element.getLinkUrl(start - 1) : null;
+      const spacelink = element.getLinkUrl(start);
+      const linkAfterSpace = element.getText().length > start + 1 ? element.getLinkUrl(start + 1) : null;
+      /*Logger.log(`_${linkText}_ ${element.getType()} ${element.getText()} ${start} ${end}
+          linkBeforeSpace ${linkBeforeSpace}
+          spacelink  ${spacelink}
+          linkAfterSpace  ${linkAfterSpace}
+      `);*/
+
+      if (!(linkBeforeSpace === spacelink || linkAfterSpace === spacelink)){
+        flagMarkOrphanedLinks = true;
+      }
     }
     // End. If there is an isolated whitespace (or more whitespaces) with a link
 
