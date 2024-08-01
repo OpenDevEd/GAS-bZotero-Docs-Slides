@@ -80,21 +80,98 @@ function processTextElement(type, element, start, end, cursorPos, urlRegEx) {
 
   // Logger.log(linkUrls);
 
+  const looksLikeLinksInParenthesisRegEx = /⇡[A-Za-z\s&.,]+\s*\d{4}(?:\s*;\s*⇡[A-Za-z\s&.,]+\s*\d{4})*/g;
 
   const linksInParenthesisRegEx = /\(\s*⇡[A-Za-z\s&.,|]+\s*\d{4}(?:\s*;\s*⇡[A-Za-z\s&.,]+\s*\d{4})*\s*\)/g;
   const linksWithYearsInParenthesisRegEx = /(?:⇡\s*[A-Za-z\s&.,]+\s*\(\s*\d{4}\s*\)\s*,\s*)*(?:⇡\s*[A-Za-z\s&.,]+\s*\(\s*\d{4}\s*\)\s*(?:, and | and ))?⇡\s*[A-Za-z\s&.,]+\s*\(\s*\d{4}\s*\)/g;;
 
   let textsToTurnArray = [];
+  const looksLikeLinksInParenthesis = findReferences(textsToTurnArray, text, looksLikeLinksInParenthesisRegEx, 'linksInParenthesis', type, start, end, cursorPos);
   const linksInParenthesis = findReferences(textsToTurnArray, text, linksInParenthesisRegEx, 'linksInParenthesis', type, start, end, cursorPos);
-  //Logger.log(linksInParenthesis);
+  // Logger.log(linksInParenthesis);
   const linksWithYearsInParenthes = findReferences(textsToTurnArray, text, linksWithYearsInParenthesisRegEx, 'linksWithYearsInParenthes', type, start, end, cursorPos);
-  //Logger.log(linksWithYearsInParenthes);
+  // Logger.log(linksWithYearsInParenthes);
 
   textsToTurnArray = linksInParenthesis.concat(linksWithYearsInParenthes);
   textsToTurnArray = sortByStart(textsToTurnArray);
-  //Logger.log(textsToTurnArray);
+
+  if (looksLikeLinksInParenthesis.length > linksInParenthesis.length) {
+    for (let i = 0; i < linksInParenthesis.length; i++) {
+      const textIP = linksInParenthesis[i].substring;
+      const sIP = linksInParenthesis[i].start;
+      const eIP = linksInParenthesis[i].end;
+      for (let j = 0; j < looksLikeLinksInParenthesis.length; j++) {
+        const textLLIP = looksLikeLinksInParenthesis[j].substring;
+        const sLLIP = looksLikeLinksInParenthesis[j].start;
+        const eLLIP = looksLikeLinksInParenthesis[j].end;
+        if (textIP.includes(textLLIP) && sIP <= sLLIP && sLLIP < eIP && sIP < eLLIP && eLLIP <= eIP) {
+          looksLikeLinksInParenthesis.splice(j, 1);
+          if (j > 0) {
+            j--;
+          }
+        }
+      }
+    }
+
+    // Logger.log(looksLikeLinksInParenthesis);
+    for (let j = looksLikeLinksInParenthesis.length - 1; j >= 0; j--) {
+      const length = element.getText().length;
+      const end = looksLikeLinksInParenthesis[j].end;
+      if (length === end) {
+        element.insertText(end, ' ');
+      }
+      element.insertText(end, ')');
+      element.setLinkUrl(end, end + 1, null);
+      element.setForegroundColor(end, end + 1, '#000000');
+      element.insertText(looksLikeLinksInParenthesis[j].start, '(');
+
+      for (let i = 0; i < textsToTurnArray.length; i++) {
+        if (textsToTurnArray[i].start > end) {
+          textsToTurnArray[i].start = textsToTurnArray[i].start + 2;
+          textsToTurnArray[i].end = textsToTurnArray[i].end + 2;
+        }
+      }
+      for (let i = 0; i < linkUrls.length; i++) {
+        if (linkUrls[i].linkStart > end) {
+          linkUrls[i].linkStart = linkUrls[i].linkStart + 2;
+          linkUrls[i].linkEnd = linkUrls[i].linkEnd + 2;
+        }
+        if (linkUrls[i].linkStart > looksLikeLinksInParenthesis[j].start && linkUrls[i].linkStart <= end) {
+          linkUrls[i].linkStart = linkUrls[i].linkStart + 1;
+          linkUrls[i].linkEnd = linkUrls[i].linkEnd + 1;
+        }
+      }
+
+    }
+  }
+
+
+
+  textsToTurnArray = linksInParenthesis.concat(linksWithYearsInParenthes);
+  textsToTurnArray = sortByStart(textsToTurnArray);
+  // Logger.log(textsToTurnArray);
   textsToTurnArray = processLinks(textsToTurnArray, linkUrls);
-  //Logger.log(textsToTurnArray);
+  // Logger.log(textsToTurnArray);
+
+  // One selected link case
+  if (textsToTurnArray.length === 1 && type === 'selection') {
+    if (textsToTurnArray[0].linksType === 'linksWithYearsInParenthes') {
+      for (let j = 0; j < textsToTurnArray[0].linksArray.length; j++) {
+        //Logger.log('s=%s e=%s url=%s', textsToTurnArray[0].linksArray[j].linkStart, textsToTurnArray[0].linksArray[j].linkEnd, textsToTurnArray[0].linksArray[j].url);
+        const linkStart = textsToTurnArray[0].linksArray[j].linkStart;
+        const linkEnd = textsToTurnArray[0].linksArray[j].linkEnd;
+        if (linkStart <= start && start <= linkEnd && linkStart <= end && end <= linkEnd) {
+          textsToTurnArray[0].substring = textsToTurnArray[0].linksArray[j].linkText;
+          textsToTurnArray[0].linksArray = [textsToTurnArray[0].linksArray[j]];
+          textsToTurnArray[0].start = linkStart;
+          textsToTurnArray[0].end = linkEnd;
+          break;
+        }
+      }
+    }
+  }
+  //Logger.log('!!!' + JSON.stringify(textsToTurnArray));
+  // End. One selected link case
 
   let resultTxt = '';
   let nonOpenDevEdLinksFlag = false;
@@ -201,6 +278,8 @@ function findReferences(textsToTurnArray, text, regex, linksType, type, startSel
   let match, start, end;
   let results = [];
 
+
+
   // Use regex.exec to find all matches and their positions
   while ((match = regex.exec(text)) !== null) {
     start = match.index;
@@ -255,15 +334,15 @@ function paragraphsFromTable(element) {
   return paragraphs;
 }
 
-function extractYear(type, text){
-    const regex = type === 'linksWithYearsInParenthes' ? /\(\s*(\d{4})\s*\)/ : /,\s*(\d{4})\s*/;
-    const match = text.match(regex);
+function extractYear(type, text) {
+  const regex = type === 'linksWithYearsInParenthes' ? /\(\s*(\d{4})\s*\)/ : /,\s*(\d{4})\s*/;
+  const match = text.match(regex);
 
-    if (match) {
-      return {
-        fullMatch: match[0],  // e.g., "(2022)", "( 2022)", etc.
-        year: match[1]        // e.g., "2022"
-      };
-    }
-    return null;
+  if (match) {
+    return {
+      fullMatch: match[0],  // e.g., "(2022)", "( 2022)", etc.
+      year: match[1]        // e.g., "2022"
+    };
+  }
+  return null;
 }

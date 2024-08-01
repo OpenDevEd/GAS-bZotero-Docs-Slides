@@ -46,6 +46,7 @@ function onOpen(e) {
   menu.addItem('Insert/update bibliography', 'insertUpdateBibliography');
   menu.addItem('Bibliography sidebar [experimental]', 'bibliographySidebar');
   menu.addSeparator();
+  menu.addItem('Author (Year) ↔ Author, Year', 'modifyLinkParenthesis')
   menu.addItem('Update/validate document links' + whereForest, 'validateLinks');
   menu.addItem('Clear validation markers', 'clearLinkMarkers');
   menu.addItem('Remove underlines from hyperlinks', 'removeUnderlineFromHyperlinks');
@@ -74,8 +75,6 @@ function onOpen(e) {
     .addSeparator()
     .addItem('Convert to numbered references (\'Vancouver\')', 'applyVancouverStyle')
     .addItem('Convert to text references (\'APA7\')', 'applyAPA7Style')
-    .addSeparator()
-    .addItem('Author (Year) ↔ Author, Year', 'modifyLinkParenthesis')
 
     // Remove for now:  
     //.addItem('znocountry highlight missing country info', 'highlightMissingCountryMarker')
