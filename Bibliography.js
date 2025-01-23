@@ -31,7 +31,7 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
       if (result.bibReferences.length > 0) {
         bibReferences = result.bibReferences;
         // API task
-        Logger.log(bibReferences);
+        // Logger.log(bibReferences);
         resultBiblTexts = forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibReferences, documentId, targetRefLinks);
         if (resultBiblTexts.status == 'error') {
           ui.alert(resultBiblTexts.message);
@@ -163,11 +163,12 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
     parIndex++;
     // End. Task 5 2021-04-13
 
-
+    let bibEntriesCounter = 0;
     for (let i = 0; i < biblTexts.length; i++) {
       //Logger.log(biblTexts[i].text);
       if (biblTexts[i].text == '\n') {
         workWithPar = true;
+        bibEntriesCounter++;
       } else {
 
         if (workWithPar === true) {
@@ -191,9 +192,23 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
       }
     }
     doc.saveAndClose();
+
+    if (resultBiblTexts.errorsInSomeKeys === true) {
+      alert('bZotBib sent ' + bibReferences.length + ' ' + getWordForm(bibReferences.length, 'key') + '  to Forest API. Forest API succesfully returned bibliography ' + getWordForm(bibEntriesCounter, 'entry', 'entries') + ' for ' + bibEntriesCounter + ' ' + getWordForm(bibEntriesCounter, 'key') + ' but there were errors with the remaining ' + getWordForm(bibReferences.length - bibEntriesCounter, 'key') + ':\n' + resultBiblTexts.errorsInSomeKeysMessage);
+    }
+
     return 0;
   }
   catch (error) {
     ui.alert('Error in insertUpdateBibliography. ' + error);
   }
+}
+
+function getWordForm(number, singular, plural) {
+  // Handle special case where plural is not provided
+  if (!plural) {
+    plural = singular + 's';
+  }
+  // Return appropriate form
+  return number === 1 ? singular : plural;
 }

@@ -49,9 +49,11 @@ if (HOST_APP == 'docs'){
   let workWithPar = true;
   let parIndex = 0;
   let html = '';
+  let bibEntriesCounter = 0;
   for (let i = 0; i < biblTexts.length; i++) {
     if (biblTexts[i].text == '\n') {
       workWithPar = true;
+      bibEntriesCounter++;
     } else {
 
       if (workWithPar === true) {
@@ -75,6 +77,10 @@ if (HOST_APP == 'docs'){
       workWithPar = false;
     }
   }
+
+    if (resultBiblTexts.errorsInSomeKeys === true) {
+      alert('bZotBib sent ' + bibReferences.length + ' ' + getWordForm(bibReferences.length, 'key') + '  to Forest API. Forest API succesfully returned bibliography ' + getWordForm(bibEntriesCounter, 'entry', 'entries') + ' for ' + bibEntriesCounter + ' ' + getWordForm(bibEntriesCounter, 'key') + ' but there were errors with the remaining ' + getWordForm(bibReferences.length - bibEntriesCounter, 'key') + ':\n' + resultBiblTexts.errorsInSomeKeysMessage);
+    }
 
   return html + '</p>';
 }

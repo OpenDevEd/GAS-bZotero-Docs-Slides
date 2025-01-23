@@ -62,7 +62,12 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
         }
       */
         workOnBibApiElement(1, biblTexts, jsonResponse.data.elements);
-        return { status: 'ok', biblTexts: biblTexts };
+        const errorsInSomeKeys = jsonResponse.errors.length > 0 ? true : false;
+let errorsInSomeKeysMessage;
+        if (errorsInSomeKeys){
+          errorsInSomeKeysMessage = JSON.stringify(jsonResponse.errors);
+        }
+        return { status: 'ok', biblTexts: biblTexts, errorsInSomeKeys, errorsInSomeKeysMessage};
       } else {
         /*
         or 

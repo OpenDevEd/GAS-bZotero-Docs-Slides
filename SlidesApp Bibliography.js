@@ -65,7 +65,7 @@ function insertUpdateBibliographySlides(validate, getparams, newForestAPI) {
 
 
   let groupIdItemKey, bibLinkParagraph;
-  let str, str2, rangeElementStart, rangeElementEnd, startDelete, endDelete, startEndFound = false;
+  let str, str2, bibEntriesCounter, rangeElementStart, rangeElementEnd, startDelete, endDelete, startEndFound = false;
 
   const slides = preso.getSlides();
   const numOfSlides = slides.length;
@@ -96,7 +96,7 @@ function insertUpdateBibliographySlides(validate, getparams, newForestAPI) {
             rangeElementStart[0].appendText(additionalText).getRange(0, additionalText.length).getTextStyle().setFontSize(18).setForegroundColor('#000000');
           }
 
-          appendBibParagraphs(rangeElementStart[0], biblTexts);
+          bibEntriesCounter = appendBibParagraphs(rangeElementStart[0], biblTexts);
 
           rangeElementStart[0].getRange(0, textToDetectStartBib.length).getTextStyle().setFontSize(fontSize).setForegroundColor(foregroundColor);
         }
@@ -121,9 +121,14 @@ function insertUpdateBibliographySlides(validate, getparams, newForestAPI) {
       biblShapeText.appendText(additionalText).getRange(0, additionalText.length).getTextStyle().setFontSize(18).setForegroundColor('#000000');
     }
 
-    appendBibParagraphs(biblShapeText, biblTexts);
+    bibEntriesCounter = appendBibParagraphs(biblShapeText, biblTexts);
     biblShapeText.appendParagraph(textToDetectEndBib).getRange().getTextStyle().setFontSize(fontSize).setForegroundColor(foregroundColor);
   }
+
+    if (resultBiblTexts.errorsInSomeKeys === true) {
+      alert('bZotBib sent ' + bibReferences.length + ' ' + getWordForm(bibReferences.length, 'key') + '  to Forest API. Forest API succesfully returned bibliography ' + getWordForm(bibEntriesCounter, 'entry', 'entries') + ' for ' + bibEntriesCounter + ' ' + getWordForm(bibEntriesCounter, 'key') + ' but there were errors with the remaining ' + getWordForm(bibReferences.length - bibEntriesCounter, 'key') + ':\n' + resultBiblTexts.errorsInSomeKeysMessage);
+    }
+
   // }
   // catch (error) {
   //   ui.alert('Error in insertUpdateBibliography. ' + error);
@@ -131,7 +136,11 @@ function insertUpdateBibliographySlides(validate, getparams, newForestAPI) {
 }
 
 function appendBibParagraphs(biblShapeText, biblTexts) {
+  let bibEntriesCounter = 0;
   for (let i = 0; i < biblTexts.length; i++) {
+    if (biblTexts[i].text == '\n') {
+      bibEntriesCounter++;
+    }
     if (biblTexts[i].name == 'a') {
       biblShapeText.appendText(biblTexts[i].text).getRange(0, biblTexts[i].text.length).getTextStyle().setLinkUrl(biblTexts[i].link).setItalic(false).setFontSize(18);
     } else if (biblTexts[i].name == 'i') {
@@ -140,5 +149,5 @@ function appendBibParagraphs(biblShapeText, biblTexts) {
       biblShapeText.appendText(biblTexts[i].text).getRange(0, biblTexts[i].text.length).getTextStyle().setItalic(false).setFontSize(18).setForegroundColor('#000000');
     }
   }
-
+return bibEntriesCounter;
 }
