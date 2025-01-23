@@ -40,7 +40,7 @@ function onOpen(e) {
 
   const ui = getUi();
 
-  const menu = ui.createMenu('bZotero');
+  const menu = ui.createMenu('bZotbib');
   const where = ' via ' + targetRefLinks;
   const whereForest = targetRefLinks == 'kerko' ? ' via Forest API' : ' via zotero';
   menu.addItem('Insert/update bibliography', 'insertUpdateBibliography');
@@ -69,7 +69,7 @@ function onOpen(e) {
     .addItem('Show item keys', 'showItemKeys')
     .addItem('Show links & urls', 'validateLinksTestHelper')
     .addSeparator()
-    .addItem('Convert ZoteroTransfer markers to bZotero', 'zoteroTransferDoc')
+    .addItem('Convert ZoteroTransfer markers to bZotBib', 'zoteroTransferDoc')
     .addSeparator()
     .addItem('Remove country markers (⇡Country: )', 'removeCountryMarkers')
     .addSeparator()

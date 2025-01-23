@@ -61,6 +61,15 @@ const styles = {
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://maths.educationevidence.io/lib/',
     "group_id": "5168324"
+  },
+  "unlockingdata":
+  {
+    "name": "bZotBibDocs (docs.unlockingdata.africa)",
+    "default_everybody": false,
+    "default_for": "docs.unlockingdata.africa",
+    "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
+    "kerkoValidationSite": 'https://docs.unlockingdata.africa/lib/',
+    "group_id": "5578897"
   }
 };
 
