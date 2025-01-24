@@ -40,7 +40,7 @@ function onOpen(e) {
 
   const ui = getUi();
 
-  const menu = ui.createMenu('bZotbib');
+  const menu = ui.createMenu('bZotBib');
   const where = ' via ' + targetRefLinks;
   const whereForest = targetRefLinks == 'kerko' ? ' via Forest API' : ' via zotero';
   menu.addItem('Insert/update bibliography', 'insertUpdateBibliography');

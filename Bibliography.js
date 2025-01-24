@@ -154,18 +154,31 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
     const bibParagraph = body.insertParagraph(parIndex, bibIntroText).setHeading(DocumentApp.ParagraphHeading.NORMAL)
       .appendText(bibLink).setLinkUrl(bibLink);
 
+    // Default foreground colour
+    const attributes = body.getHeadingAttributes(DocumentApp.ParagraphHeading.NORMAL);
+
+    // Get the foreground color
+    let foregroundColor = attributes[DocumentApp.Attribute.FOREGROUND_COLOR];
+
+    // If foregroundColor is null, it means the default color (usually black) is being used
+    if (foregroundColor === null) {
+      foregroundColor = '#000000'; // Default black color
+    }
+    // End. Default foreground colour
+
+
+
     if (targetRefLinks == 'zotero') {
       let additionalText = '. Do not edit the bibliography entries below - edit them in Zotero instead. Any changes that you make to bibliography entries below will be overwritten.';
       startText = bibParagraph.getText().length;
       endText = startText + additionalText.length - 1;
-      bibParagraph.appendText(additionalText).setLinkUrl(startText, endText, null);
+      bibParagraph.appendText(additionalText).setLinkUrl(startText, endText, null).setForegroundColor(startText, endText, foregroundColor);
     }
     parIndex++;
     // End. Task 5 2021-04-13
 
     let bibEntriesCounter = 0;
     for (let i = 0; i < biblTexts.length; i++) {
-      //Logger.log(biblTexts[i].text);
       if (biblTexts[i].text == '\n') {
         workWithPar = true;
         bibEntriesCounter++;
@@ -181,9 +194,9 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
           if (biblTexts[i].name == 'a') {
             startParagraph.editAsText().appendText(biblTexts[i].text).setLinkUrl(startText, endText, biblTexts[i].link);
           } else if (biblTexts[i].name == 'i') {
-            startParagraph.editAsText().appendText(biblTexts[i].text).setItalic(startText, endText, true).setLinkUrl(startText, endText, null);
+            startParagraph.editAsText().appendText(biblTexts[i].text).setItalic(startText, endText, true).setLinkUrl(startText, endText, null).setForegroundColor(startText, endText, foregroundColor);
           } else {
-            startParagraph.editAsText().appendText(biblTexts[i].text).setItalic(startText, endText, false).setLinkUrl(startText, endText, null);
+            startParagraph.editAsText().appendText(biblTexts[i].text).setItalic(startText, endText, false).setLinkUrl(startText, endText, null).setForegroundColor(startText, endText, foregroundColor);
           }
           startText = startText + biblTexts[i].text.length;
         }
