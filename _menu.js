@@ -53,6 +53,7 @@ function onOpen(e) {
   menu.addSeparator();
   menu.addSubMenu(ui.createMenu('Configure and publish')
     .addItem('Prepare for publishing', 'prepareForPublishing')
+    .addItem('Collect cited items', 'collectCitedItems')
     .addSeparator()
     .addItem(zoteroItemKeyAction + ' Zotero item key for this doc', 'addZoteroItemKey')
     .addItem(zoteroCollectionKeyAction + ' Zotero collection key for this doc', 'addZoteroCollectionKey')

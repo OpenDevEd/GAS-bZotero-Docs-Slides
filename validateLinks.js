@@ -247,11 +247,14 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
   prepareBibMarkers();
   REF_OPENDEVED_LINKS_REGEX = refOpenDevEdLinksRegEx();
   const validateFalse = false, getparamsFalse = false, markorphanedlinksFalse = false, analysekerkolinksFalse = false;
+  let docOrPresoId, docOrPresoTitle;
 
   if (HOST_APP == 'docs') {
     // Doc part
     const doc = DocumentApp.getActiveDocument();
     const body = doc.getBody();
+    docOrPresoId = doc.getId();
+    docOrPresoTitle = doc.getName();
 
     // Detects bibliography
     const rangeElementStart = body.findText(TEXT_TO_DETECT_START_BIB);
@@ -280,7 +283,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
       //Logger.log('bibReferences = ' + bibReferences);
 
       // Forest API getRedirects
-      result = forestAPIcallGetRedirects(validationSite, bibReferences, doc.getId());
+      result = forestAPIcallGetRedirects(validationSite, bibReferences, docOrPresoId);
       if (result.status == 'error') {
         ui.alert(result.message);
         return 0;
@@ -303,12 +306,15 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
     // End. Doc part
   } else {
     // Slides part
+    const activePreso = SlidesApp.getActivePresentation();
+    docOrPresoId = activePreso.getId();
+    docOrPresoTitle = activePreso.getName();
     if (newForestAPI === true) {
       validateSlides(bibReferences, alreadyCheckedLinks, validationSite, zoteroItemKeyParameters, targetRefLinks, zoteroCollectionKey, validateFalse, getparamsFalse, markorphanedlinksFalse, analysekerkolinksFalse, flagsObject, onlyLinks, newForestAPIjson, newForestAPI);
 
-      Logger.log('Slides bibReferences ' + bibReferences);
+      // Logger.log('Slides bibReferences ' + bibReferences);
       //  Forest API getRedirects
-      result = forestAPIcallGetRedirects(validationSite, bibReferences, SlidesApp.getActivePresentation().getId());
+      result = forestAPIcallGetRedirects(validationSite, bibReferences, docOrPresoId);
       if (result.status == 'error') {
         ui.alert(result.message);
         return 0;
@@ -343,7 +349,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
   }
   if (validate === false || getparams === false || markorphanedlinks === true) {
     //Logger.log('targetRefLinks (validate links)' + targetRefLinks);
-    return { status: 'ok', bibReferences: bibReferences, validationSite: validationSite, zoteroItemGroup: zoteroItemGroup, zoteroItemKey: zoteroItemKey, zoteroItemKeyParameters: zoteroItemKeyParameters, targetRefLinks: targetRefLinks };
+    return { status: 'ok', bibReferences: bibReferences, validationSite: validationSite, zoteroItemGroup: zoteroItemGroup, zoteroItemKey: zoteroItemKey, zoteroItemKeyParameters: zoteroItemKeyParameters, targetRefLinks: targetRefLinks, docOrPresoId, docOrPresoTitle};
   }
 
 
