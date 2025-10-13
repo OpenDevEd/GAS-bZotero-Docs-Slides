@@ -14,6 +14,8 @@ function clearLinkMarkers() {
     }
     // End. Converts link markers to regular explessions
 
+    LINK_MARK_OBJ['UNEXPECTED_FOREST_TYPE'] = 'UNEXPECTED_FOREST_TYPE \\(.*?\\)';
+
     if (HOST_APP == 'docs') {
       const doc = DocumentApp.getActiveDocument();
       for (let mark in LINK_MARK_OBJ) {
