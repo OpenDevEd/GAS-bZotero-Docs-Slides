@@ -13,9 +13,10 @@ function removeOpeninZoteroapp() {
   catch (error) {
     ui.alert('Error in removeOpeninZoteroapp: ' + error);
   }
+  addUsageTrackingRecord('removeOpeninZoteroapp');
 }
 
-function removeUnderlineFromHyperlinks() {
+function removeUnderlineFromHyperlinks(trackUsage = true) {
   const ui = getUi();
   try {
     const toDo = 'removeUnderlineFromHyperlinks';
@@ -29,6 +30,9 @@ function removeUnderlineFromHyperlinks() {
   }
   catch (error) {
     ui.alert('Error in removeUnderlineFromHyperlinks: ' + error);
+  }
+  if (trackUsage === true) {
+    addUsageTrackingRecord('removeUnderlineFromHyperlinks');
   }
 }
 

@@ -1,3 +1,8 @@
+function onInstall(e) {
+  onOpen(e);
+  addInstallationRecord();
+}
+
 function onOpen(e) {
   let targetMenuString, kerkoValidationSite, zoteroItemKeyAction, zoteroCollectionKeyAction, opendevedUser = false;
   // https://developers.google.com/workspace/add-ons/concepts/editor-auth-lifecycle#the_complete_lifecycle
@@ -111,6 +116,7 @@ function minifyCitations() {
   } else {
     packZoteroSlides('minifyCitations');
   }
+  addUsageTrackingRecord('minifyCitations');
 };
 
 function maxifyCitations() {
@@ -119,6 +125,7 @@ function maxifyCitations() {
   } else {
     packZoteroSlides('maxifyCitations');
   }
+  addUsageTrackingRecord('maxifyCitations');
 };
 
 function unfyCitations() {
@@ -127,6 +134,7 @@ function unfyCitations() {
   } else {
     packZoteroSlides('unfyCitations');
   }
+  addUsageTrackingRecord('unfyCitations');
 };
 
 function unpackCombined() {
@@ -136,6 +144,7 @@ function unpackCombined() {
   } else {
     unpackZoteroSlides(false);
   }
+  addUsageTrackingRecord('unpackCombined');
 };
 
 function unpackCombinedWarning() {
@@ -145,6 +154,7 @@ function unpackCombinedWarning() {
   } else {
     unpackZoteroSlides(true);
   }
+  addUsageTrackingRecord('unpackCombinedWarning');
 };
 
 function packZoteroCall() {
@@ -153,6 +163,7 @@ function packZoteroCall() {
   } else {
     packZoteroSlides('packZotero');
   }
+  addUsageTrackingRecord('packZoteroCall');
 };
 
 function zoteroUnpackCall(warning) {
@@ -165,4 +176,5 @@ function packZoteroSelectiveCall() {
   } else {
     packZoteroSelectiveCallSlides();
   }
+  addUsageTrackingRecord('packZoteroSelectiveCall');
 };

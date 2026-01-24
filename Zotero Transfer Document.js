@@ -61,6 +61,7 @@ function zoteroTransferDoc() {
   catch (error) {
     ui.alert('Error in zoteroTransferDoc. ' + error);
   }
+  addUsageTrackingRecord('zoteroTransferDoc');
 }
 
 function zoteroTransferSlidesHelper(rangeElementStart, zoteroString, counter) {

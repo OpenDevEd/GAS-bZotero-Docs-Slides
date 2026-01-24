@@ -2,7 +2,7 @@ function alertSuggestedFootnoteBug(i) {
   alert("Footnote has no contents. Footnote number = " + (+i + 1) + ". This appears to be a GDocs bug that happens if the footnote is suggested text only.");
 }
 
-function clearLinkMarkers() {
+function clearLinkMarkers(trackUsage = true) {
   const ui = getUi();
   try {
     collectLinkMarks();
@@ -73,6 +73,9 @@ function clearLinkMarkers() {
   catch (error) {
     ui.alert('Error in clearLinkMarkers: ' + error);
   }
+  if (trackUsage === true) {
+    addUsageTrackingRecord('clearLinkMarkers');
+  }
 }
 
 // Instead of clearZwarnings
@@ -104,6 +107,7 @@ function clearWarningMarkers() {
   catch (error) {
     ui.alert('Error in clearWarningMarkers: ' + error);
   }
+  addUsageTrackingRecord('clearWarningMarkers');
 }
 
 function removeCountryMarkers() {
@@ -118,5 +122,6 @@ function removeCountryMarkers() {
   catch (error) {
     ui.alert('Error in removeCountryMarkers: ' + error);
   }
+  addUsageTrackingRecord('removeCountryMarkers');
 }
 

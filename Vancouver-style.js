@@ -1,9 +1,11 @@
 function applyVancouverStyle() {
   vancouverStyle('Vancouver');
+  addUsageTrackingRecord('applyVancouverStyle');
 }
 
 function applyAPA7Style() {
   vancouverStyle('APA7');
+  addUsageTrackingRecord('applyAPA7Style');
 }
 
 function vancouverStyle(toDo) {

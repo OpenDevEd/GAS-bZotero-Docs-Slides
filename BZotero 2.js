@@ -17,7 +17,7 @@ function getDocumentPropertyString(property_name) {
   return value;
 }
 
-function enterValidationSite(errorText = '') {
+function enterValidationSite(errorText = '', trackUsage = true) {
   // UserProperty -> DocumentProperty Update
   const kerkoValidationSite = getDocumentPropertyString('kerko_validation_site');
   if (kerkoValidationSite != null) {
@@ -37,8 +37,11 @@ function enterValidationSite(errorText = '') {
       updateStyle();
       onOpen();
     } else {
-      enterValidationSite('Error!\n');
+      enterValidationSite('Error!\n', false);
     }
+  }
+  if (trackUsage === true) {
+    addUsageTrackingRecord('enterValidationSite');
   }
 }
 
@@ -64,7 +67,7 @@ function scanForItemKey(targetRefLinks) {
         if (libLink != null) {
           result = detectZoteroItemKeyType('https://' + libLink);
           if (result.status == 'error') {
-            result = addZoteroItemKey('', false, false, targetRefLinks);
+            result = addZoteroItemKey('', false, false, targetRefLinks, false);
             return result;
           }
           foundFlag = true;
@@ -75,7 +78,7 @@ function scanForItemKey(targetRefLinks) {
   }
 
   if (!foundFlag) {
-    result = addZoteroItemKey('', false, false, targetRefLinks);
+    result = addZoteroItemKey('', false, false, targetRefLinks, false);
   }
   return result;
 }
@@ -129,14 +132,14 @@ Do you wish to change the target to ‘${proposedTargetRefLinks}’?`, ui.Button
     const response2 = ui.alert('You have changed the target for reference links', 'The links will now be reconfigured.', ui.ButtonSet.OK_CANCEL);
     if (response2 == ui.Button.OK) {
       const newForestAPI = userCanCallForestAPI();
-      validateLinks(false, true, false, false, newForestAPI);
+      validateLinks(false, true, false, false, newForestAPI, false);
     }
   }
-
+  addUsageTrackingRecord('targetReferenceLinks');
 }
 
 
-function addZoteroCollectionKey(errorText = '', optional = false, bibliography = false) {
+function addZoteroCollectionKey(errorText = '', optional = false, bibliography = false, trackUsage = true) {
   // Logger.log('Function addZoteroCollectionKey ' + ' optional = ' + optional + ' bibliography = ' + bibliography);
   let currentZoteroCollectionKey = getDocumentPropertyString('zotero_collection_key');
   if (currentZoteroCollectionKey == null) {
@@ -155,13 +158,19 @@ function addZoteroCollectionKey(errorText = '', optional = false, bibliography =
     if (zoteroCollectionRegEx.test(zoteroCollectionItem)) {
       setDocumentPropertyString('zotero_collection_key', zoteroCollectionItem);
     } else {
-      addZoteroCollectionKey('Error! Wrong Zotero collection key.\n', optional, bibliography);
+      addZoteroCollectionKey('Error! Wrong Zotero collection key.\n', optional, bibliography, false);
     }
   }
   onOpen();
+  if (trackUsage === true) {
+    addUsageTrackingRecord('addZoteroCollectionKey');
+  }
 }
 
-function addZoteroItemKey(errorText = '', optional = false, bibliography = false, targetRefLinks) {
+function addZoteroItemKey(errorText = '', optional = false, bibliography = false, targetRefLinks, trackUsage = true) {
+  if (trackUsage === true) {
+    addUsageTrackingRecord('addZoteroItemKey');
+  }
   const currentZoteroItemKey = getDocumentPropertyString('zotero_item');
   if (currentZoteroItemKey != null) {
     errorText += '\nCurrent Zotero Item Key:\n' + currentZoteroItemKey + '\n';
@@ -177,7 +186,7 @@ function addZoteroItemKey(errorText = '', optional = false, bibliography = false
 
     let res = detectZoteroItemKeyType(zotero_item);
     if (res.status == 'error') {
-      res = addZoteroItemKey(res.message, optional, bibliography, targetRefLinks);
+      res = addZoteroItemKey(res.message, optional, bibliography, targetRefLinks, false);
     }
     //return res;
   } else if (response.getSelectedButton() == ui.Button.CANCEL) {
@@ -229,11 +238,11 @@ function detectZoteroItemKeyType(zotero_item) {
         });
         if (!thisStyle) {
           throw new Error('Style containing kerkoValidationSite ' + domains[i] + ' wasn\'t found.\nAsk admin to check object styles in config_public.gs file.');
-        }  
+        }
         const groupId = styles[thisStyle]['group_id'];
         if (!groupId) {
           throw new Error('Key group_id wasn\'t found in settings of ' + domains[i] + '\nAsk admin to check object styles in config_public.gs file.');
-        }        
+        }
         zotero_item = 'zotero://select/groups/' + groupId + '/items/' + itemKey;
         setDP = true;
         break;

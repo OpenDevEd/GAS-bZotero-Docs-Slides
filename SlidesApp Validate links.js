@@ -205,7 +205,7 @@ function scanForItemKeySlides(targetRefLinks) {
             if (libLink != null) {
               result = detectZoteroItemKeyType('https://' + libLink);
               if (result.status == 'error') {
-                result = addZoteroItemKey('', false, false, targetRefLinks);
+                result = addZoteroItemKey('', false, false, targetRefLinks, false);
                 return result;
               }
               foundFlag = true;
@@ -217,7 +217,7 @@ function scanForItemKeySlides(targetRefLinks) {
   }
 
   if (!foundFlag) {
-    result = addZoteroItemKey('', false, false, targetRefLinks);
+    result = addZoteroItemKey('', false, false, targetRefLinks, false);
   }
   return result;
 }

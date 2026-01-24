@@ -76,18 +76,24 @@ function replaceAddParameter(url, name, srcParameter) {
 }
 
 function analyseKerkoLinksV1() {
-  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true, newForestAPI = false);
+  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true, newForestAPI = false, false);
+  addUsageTrackingRecord('analyseKerkoLinksV1');
 }
 
 function analyseKerkoLinks() {
-  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true, newForestAPI = true);
+  validateLinks(validate = true, getparams = false, markorphanedlinks = false, analysekerkolinks = true, newForestAPI = true, false);
+  addUsageTrackingRecord('analyseKerkoLinks');
 }
 
 function validateLinksV1() {
-  validateLinks(validate = true, getparams = false, markorphanedlinks = true, analysekerkolinks = false, newForestAPI = false);
+  validateLinks(validate = true, getparams = false, markorphanedlinks = true, analysekerkolinks = false, newForestAPI = false, false);
+  addUsageTrackingRecord('validateLinksV1');
 }
 
-function validateLinks(validate = true, getparams = true, markorphanedlinks = true, analysekerkolinks = false, newForestAPI = true) {
+function validateLinks(validate = true, getparams = true, markorphanedlinks = true, analysekerkolinks = false, newForestAPI = true, trackUsage = true) {
+  if (trackUsage === true) {
+    addUsageTrackingRecord('validateLinks');
+  }
   console.time('validateLinks time')
 
   let bibReferences = [];
@@ -123,7 +129,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
       scanForItemKeySlides(targetRefLinks);
     }
   } else if (currentZoteroItemKey == null && (validate || getparams)) {
-    const addZoteroItemKeyResult = addZoteroItemKey(errorText = '', optional = true, bibliography = false, targetRefLinks);
+    const addZoteroItemKeyResult = addZoteroItemKey(errorText = '', optional = true, bibliography = false, targetRefLinks, false);
     if (addZoteroItemKeyResult.status == 'stop') {
       return 0;
     }
@@ -152,7 +158,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
   let currentZoteroCollectionKey = getDocumentPropertyString('zotero_collection_key');
   const autoPromptCollection = getStyleValue('autoPromptCollection');
   if (currentZoteroCollectionKey == null && targetRefLinks == 'zotero' && autoPromptCollection) {
-    addZoteroCollectionKey('', true, false);
+    addZoteroCollectionKey('', true, false, false);
     currentZoteroCollectionKey = getDocumentPropertyString('zotero_collection_key');
     if (currentZoteroCollectionKey == null) {
       if (validate == true && getparams == true) {
@@ -207,7 +213,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
       updateStyle();
       onOpen();
     } else {
-      enterValidationSite();
+      enterValidationSite('', false);
       validationSite = getDocumentPropertyString('kerko_validation_site');
       if (validationSite == null) {
         ui.alert('Please enter Validation site');
@@ -240,7 +246,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
   };
   // End. The object helps to track types of found links
 
-  clearLinkMarkers();
+  clearLinkMarkers(false);
 
   let result, onlyLinks, newForestAPIjson;
 
@@ -349,7 +355,7 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
   }
   if (validate === false || getparams === false || markorphanedlinks === true) {
     //Logger.log('targetRefLinks (validate links)' + targetRefLinks);
-    return { status: 'ok', bibReferences: bibReferences, validationSite: validationSite, zoteroItemGroup: zoteroItemGroup, zoteroItemKey: zoteroItemKey, zoteroItemKeyParameters: zoteroItemKeyParameters, targetRefLinks: targetRefLinks, docOrPresoId, docOrPresoTitle};
+    return { status: 'ok', bibReferences: bibReferences, validationSite: validationSite, zoteroItemGroup: zoteroItemGroup, zoteroItemKey: zoteroItemKey, zoteroItemKeyParameters: zoteroItemKeyParameters, targetRefLinks: targetRefLinks, docOrPresoId, docOrPresoTitle };
   }
 
 
@@ -410,7 +416,7 @@ function checkHyperlinkNew(url, element, start, end, validate, getparams, markor
           linkAfterSpace  ${linkAfterSpace}
       `);*/
 
-      if (!(linkBeforeSpace === spacelink || linkAfterSpace === spacelink)){
+      if (!(linkBeforeSpace === spacelink || linkAfterSpace === spacelink)) {
         flagMarkOrphanedLinks = true;
       }
     }

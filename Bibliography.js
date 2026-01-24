@@ -4,6 +4,7 @@ function insertUpdateBibliography() {
   } else {
     insertUpdateBibliographySlides(false, false, false);
   }
+  addUsageTrackingRecord('insertUpdateBibliography');
 }
 
 // insertUpdateBibliography and prepareForPublishing use the function
@@ -14,7 +15,7 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
     const doc = DocumentApp.getActiveDocument();
     const documentId = doc.getId();
 
-    let result = validateLinks(validate, getparams, true, false, newForestAPI);
+    let result = validateLinks(validate, getparams, true, false, newForestAPI, false);
     let validationSite, zoteroItemKey, zoteroItemGroup, bibLink, zoteroItemKeyParameters, biblTexts = [];
     const textToDetectStartBib = TEXT_TO_DETECT_START_BIB;
     const textToDetectEndBib = TEXT_TO_DETECT_END_BIB;

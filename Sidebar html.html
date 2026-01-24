@@ -113,7 +113,7 @@
 		/* End. Loader */
 	</style>
 	<script>
-		loadBib();
+		// loadBib(false);
 
 function onSuccess(bib){
   document.getElementById("loader").style.display = "none";
@@ -123,12 +123,12 @@ function onSuccess(bib){
   document.getElementById("bib").innerHTML = bib;
 }
 
-function loadBib(){
+function loadBib(trackUsage){
 
   document.getElementById("loader").style.display = "block";
   document.getElementById("bibDiv").style.display = "none";
 
-  google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).bibliographyForSidebar();
+  google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).bibliographyForSidebar(trackUsage);
 }
 
 function onFailure(error) {
@@ -145,7 +145,7 @@ function onFailure(error) {
 	</script>
 </head>
 
-<body onload="loadBib()">
+<body onload="loadBib(false)">
 	<div id="loader">
 		<div class="lds-ring">
 			<div></div>
@@ -157,7 +157,7 @@ function onFailure(error) {
 
 	<div style="display:none;" id="bibDiv">
 
-		<input class="block" type="button" value="Update" onclick="loadBib()">
+		<input class="block" type="button" value="Update" onclick="loadBib(true)">
 		<div id="error" style="color:#ff0000;"></div>
 		<div id="bib"></div>
 

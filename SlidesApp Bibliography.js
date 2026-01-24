@@ -8,8 +8,7 @@ function insertUpdateBibliographySlides(validate, getparams, newForestAPI) {
   const preso = SlidesApp.getActivePresentation();
   presoId = preso.getId();
 
-  //let result = validateLinks(validate = false);
-  let result = validateLinks(validate, getparams, newForestAPI);
+  let result = validateLinks(validate, getparams, true, false, newForestAPI, false);
   let validationSite, zoteroItemKey, zoteroItemGroup, bibLink, zoteroItemKeyParameters, biblTexts, targetRefLinks;
   const textToDetectStartBib = TEXT_TO_DETECT_START_BIB;
   const textToDetectEndBib = TEXT_TO_DETECT_END_BIB;

@@ -1,7 +1,7 @@
 function prepareForPublishing() {
 
   let targetRefLinks = getDocumentPropertyString('target_ref_links');
- 
+
   if (targetRefLinks != 'kerko') {
     setDocumentPropertyString('target_ref_links', 'kerko');
     onOpen();
@@ -13,5 +13,6 @@ function prepareForPublishing() {
     insertUpdateBibliographySlides(true, true, true);
   }
 
-  removeUnderlineFromHyperlinks();
+  removeUnderlineFromHyperlinks(false);
+  addUsageTrackingRecord('prepareForPublishing');
 }

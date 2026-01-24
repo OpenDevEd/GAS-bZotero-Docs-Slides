@@ -1,7 +1,7 @@
 function showItemKeys() {
   const ui = getUi();
   let bibReferences, text = '', itemKeys;
-  let result = validateLinks(false, false, false, false, false);
+  let result = validateLinks(false, false, false, false, false, false);
   if (result.status == 'ok') {
     if (result.bibReferences.length > 0) {
       bibReferences = result.bibReferences;
@@ -29,4 +29,5 @@ function showItemKeys() {
     // We don't show alert here because validateLinks has own alerts about errors.
     return 0;
   }
+  addUsageTrackingRecord('showItemKeys');
 }

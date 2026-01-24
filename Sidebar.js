@@ -2,25 +2,25 @@ function bibliographySidebar() {
   const ui = getUi();
   const html = HtmlService.createHtmlOutputFromFile('Sidebar html').setTitle('Bibliography');
   ui.showSidebar(html);
+  addUsageTrackingRecord('bibliographySidebar');
 }
 
-function bibliographyForSidebar() {
+function bibliographyForSidebar(trackUsage = true) {
   const ui = getUi();
-let documentId;
-if (HOST_APP == 'docs'){
-  const doc = DocumentApp.getActiveDocument();
-  documentId = doc.getId();
-}else{
-  documentId = SlidesApp.getActivePresentation().getId();
-}
-
-  let result = validateLinks(validate = false, getparams = false, false);
+  let documentId;
+  if (HOST_APP == 'docs') {
+    const doc = DocumentApp.getActiveDocument();
+    documentId = doc.getId();
+  } else {
+    documentId = SlidesApp.getActivePresentation().getId();
+  }
+  let result = validateLinks(validate = false, getparams = false, false, false, true, false);
   let validationSite, zoteroItemKey, zoteroItemGroup, zoteroItemKeyParameters, biblTexts;
   let bibReferences = [];
-  if (!result.hasOwnProperty('status')){
+  if (!result.hasOwnProperty('status')) {
     throw new Error('Error in validateLinks!');
   }
-  
+
   if (result.status == 'ok') {
     validationSite = result.validationSite;
     zoteroItemKey = result.zoteroItemKey;
@@ -38,7 +38,7 @@ if (HOST_APP == 'docs'){
       }
       biblTexts = resultBiblTexts.biblTexts;
     } else {
-     // ui.alert('Links for bibliography weren\'t found.');
+      // ui.alert('Links for bibliography weren\'t found.');
       //return 0;
       throw new Error('Links for bibliography weren\'t found.');
     }
@@ -78,9 +78,12 @@ if (HOST_APP == 'docs'){
     }
   }
 
-    if (resultBiblTexts.errorsInSomeKeys === true) {
-      alert('bZotBib sent ' + bibReferences.length + ' ' + getWordForm(bibReferences.length, 'key') + '  to Forest API. Forest API succesfully returned bibliography ' + getWordForm(bibEntriesCounter, 'entry', 'entries') + ' for ' + bibEntriesCounter + ' ' + getWordForm(bibEntriesCounter, 'key') + ' but there were errors with the remaining ' + getWordForm(bibReferences.length - bibEntriesCounter, 'key') + ':\n' + resultBiblTexts.errorsInSomeKeysMessage);
-    }
+  if (resultBiblTexts.errorsInSomeKeys === true) {
+    alert('bZotBib sent ' + bibReferences.length + ' ' + getWordForm(bibReferences.length, 'key') + '  to Forest API. Forest API succesfully returned bibliography ' + getWordForm(bibEntriesCounter, 'entry', 'entries') + ' for ' + bibEntriesCounter + ' ' + getWordForm(bibEntriesCounter, 'key') + ' but there were errors with the remaining ' + getWordForm(bibReferences.length - bibEntriesCounter, 'key') + ':\n' + resultBiblTexts.errorsInSomeKeysMessage);
+  }
 
+  if (trackUsage === true) {
+    addUsageTrackingRecord('bibliographyForSidebar');
+  }
   return html + '</p>';
 }

@@ -4,6 +4,7 @@ function modifyLinkParenthesis() {
   } else {
     alert('Sorry! The modifyLink function has not been implemented yet for Google Slides.');
   }
+  addUsageTrackingRecord('modifyLinkParenthesis');
 }
 
 function modifyLinkParenthesisDoc() {

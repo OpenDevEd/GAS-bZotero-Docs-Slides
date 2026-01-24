@@ -74,6 +74,7 @@ function validateLinksTestHelper() {
 </html>`;
   html = HtmlService.createHtmlOutput(html).setWidth(800).setHeight(800);
   ui.showModalDialog(html, 'Links');
+  addUsageTrackingRecord('validateLinksTestHelper');
 }
 
 function testingFindAllLinks(element, source, linksArray) {

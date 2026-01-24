@@ -7,7 +7,7 @@ function collectCitedItems() {
       return 0;
     }
 
-    const result = validateLinks(false, false, false, false, false);
+    const result = validateLinks(false, false, false, false, false, false);
     if (result.status != 'ok') {
       return 0;
     }
@@ -70,4 +70,5 @@ function collectCitedItems() {
   catch (error) {
     ui.alert('Error in function collectCitedItems. ' + error);
   }
+  addUsageTrackingRecord('collectCitedItems');
 }
