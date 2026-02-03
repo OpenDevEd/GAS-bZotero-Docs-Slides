@@ -35,7 +35,11 @@ function universalInsertUpdateBibliography(validate, getparams, newForestAPI) {
         // Logger.log(bibReferences);
         resultBiblTexts = forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibReferences, documentId, targetRefLinks);
         if (resultBiblTexts.status == 'error') {
-          ui.alert(resultBiblTexts.message);
+          if (resultBiblTexts.modalWindow === true) {
+            showAccessDeniedWindow();
+          } else {
+            ui.alert(resultBiblTexts.message);
+          }
           return 0;
         }
         biblTexts = resultBiblTexts.biblTexts;

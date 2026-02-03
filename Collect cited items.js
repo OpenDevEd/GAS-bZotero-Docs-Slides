@@ -3,7 +3,7 @@ function collectCitedItems() {
   try {
 
     if (userCanCallForestAPI() === false) {
-      ui.alert('Access denied! You can\'t use Forest API. Please visit https://opendeved.net/our-tools/bZotero to find out how to use bZotBib.');
+      showAccessDeniedWindow();
       return 0;
     }
 

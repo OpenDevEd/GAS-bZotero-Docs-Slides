@@ -33,7 +33,11 @@ function bibliographyForSidebar(trackUsage = true) {
       bibReferences = result.bibReferences;
       resultBiblTexts = forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibReferences, documentId, targetRefLinks, mode = 'sidebar');
       if (resultBiblTexts.status == 'error') {
-        ui.alert(resultBiblTexts.message);
+        if (resultBiblTexts.modalWindow === true) {
+          showAccessDeniedWindow();
+        } else {
+          ui.alert(resultBiblTexts.message);
+        }
         return 0;
       }
       biblTexts = resultBiblTexts.biblTexts;

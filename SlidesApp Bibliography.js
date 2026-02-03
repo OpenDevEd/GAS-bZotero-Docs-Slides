@@ -24,11 +24,13 @@ function insertUpdateBibliographySlides(validate, getparams, newForestAPI) {
       bibReferences = result.bibReferences;
       //Logger.log('bibReferences' + bibReferences);
 
-      //resultBiblTexts = forestAPIcall(validationSite, zoteroItemKey, bibReferences, presoId);
-      //forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibReferences, docOrPresoId, target, mode = 'bib')
       resultBiblTexts = forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibReferences, presoId, targetRefLinks, 'bib');
       if (resultBiblTexts.status == 'error') {
-        ui.alert(resultBiblTexts.message);
+        if (resultBiblTexts.modalWindow === true) {
+          showAccessDeniedWindow();
+        } else {
+          ui.alert(resultBiblTexts.message);
+        }
         return 0;
       }
       biblTexts = resultBiblTexts.biblTexts;
@@ -124,9 +126,9 @@ function insertUpdateBibliographySlides(validate, getparams, newForestAPI) {
     biblShapeText.appendParagraph(textToDetectEndBib).getRange().getTextStyle().setFontSize(fontSize).setForegroundColor(foregroundColor);
   }
 
-    if (resultBiblTexts.errorsInSomeKeys === true) {
-      alert('bZotBib sent ' + bibReferences.length + ' ' + getWordForm(bibReferences.length, 'key') + '  to Forest API. Forest API succesfully returned bibliography ' + getWordForm(bibEntriesCounter, 'entry', 'entries') + ' for ' + bibEntriesCounter + ' ' + getWordForm(bibEntriesCounter, 'key') + ' but there were errors with the remaining ' + getWordForm(bibReferences.length - bibEntriesCounter, 'key') + ':\n' + resultBiblTexts.errorsInSomeKeysMessage);
-    }
+  if (resultBiblTexts.errorsInSomeKeys === true) {
+    alert('bZotBib sent ' + bibReferences.length + ' ' + getWordForm(bibReferences.length, 'key') + '  to Forest API. Forest API succesfully returned bibliography ' + getWordForm(bibEntriesCounter, 'entry', 'entries') + ' for ' + bibEntriesCounter + ' ' + getWordForm(bibEntriesCounter, 'key') + ' but there were errors with the remaining ' + getWordForm(bibReferences.length - bibEntriesCounter, 'key') + ':\n' + resultBiblTexts.errorsInSomeKeysMessage);
+  }
 
   // }
   // catch (error) {
@@ -148,5 +150,5 @@ function appendBibParagraphs(biblShapeText, biblTexts) {
       biblShapeText.appendText(biblTexts[i].text).getRange(0, biblTexts[i].text.length).getTextStyle().setItalic(false).setFontSize(18).setForegroundColor('#000000');
     }
   }
-return bibEntriesCounter;
+  return bibEntriesCounter;
 }

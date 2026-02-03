@@ -6,7 +6,7 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
     const token = BIBAPI_TOKEN;
 
     if (userCanCallForestAPI() === false) {
-      return { status: 'error', message: 'Access denied! You can\'t use Forest API. Please visit https://opendeved.net/our-tools/bZotero to find out how to use bZotBib.' };
+      return { status: 'error', message: 'Access denied! You can\'t use Forest API. Please visit https://opendeved.net/our-tools/bZotero to find out how to use bZotBib.', modalWindow: true};
     }
 
     /* const apiCall = 'https://forest.opendeved.net/api/bib/';

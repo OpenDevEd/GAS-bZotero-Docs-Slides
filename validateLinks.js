@@ -291,7 +291,11 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
       // Forest API getRedirects
       result = forestAPIcallGetRedirects(validationSite, bibReferences, docOrPresoId);
       if (result.status == 'error') {
-        ui.alert(result.message);
+        if (result.modalWindow === true) {
+          showAccessDeniedWindow();
+        } else {
+          ui.alert(result.message);
+        }
         return 0;
       }
       newForestAPIjson = result.json;
@@ -322,7 +326,11 @@ function validateLinks(validate = true, getparams = true, markorphanedlinks = tr
       //  Forest API getRedirects
       result = forestAPIcallGetRedirects(validationSite, bibReferences, docOrPresoId);
       if (result.status == 'error') {
-        ui.alert(result.message);
+        if (result.modalWindow === true) {
+          showAccessDeniedWindow();
+        } else {
+          ui.alert(result.message);
+        }
         return 0;
       }
       newForestAPIjson = result.json;
