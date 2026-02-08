@@ -110,7 +110,7 @@ const LINK_MARK_STYLE_NEW = new Object();
 
 // Changes a value of ACTIVE_STYLE to style that is default for DocumentProperties kerko_validation_site
 function updateStyle() {
-  HOST_APP = 'slides';
+  HOST_APP = 'docs';
   // try {
   //   const ui = DocumentApp.getUi();
   //   HOST_APP = 'docs';

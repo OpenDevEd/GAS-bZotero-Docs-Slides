@@ -6,7 +6,7 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
     const token = BIBAPI_TOKEN;
 
     if (userCanCallForestAPI() === false) {
-      return { status: 'error', message: 'Access denied! You can\'t use Forest API. Please visit https://opendeved.net/our-tools/bZotero to find out how to use bZotBib.', modalWindow: true};
+      return { status: 'error', message: 'Access denied! You can\'t use Forest API. Please visit https://opendeved.net/our-tools/bZotero to find out how to use bZotBib.', modalWindow: true };
     }
 
     /* const apiCall = 'https://forest.opendeved.net/api/bib/';
@@ -63,11 +63,11 @@ function forestAPIcall(validationSite, zoteroItemKey, zoteroItemGroup, bibRefere
       */
         workOnBibApiElement(1, biblTexts, jsonResponse.data.elements);
         const errorsInSomeKeys = jsonResponse.errors.length > 0 ? true : false;
-let errorsInSomeKeysMessage;
-        if (errorsInSomeKeys){
+        let errorsInSomeKeysMessage;
+        if (errorsInSomeKeys) {
           errorsInSomeKeysMessage = JSON.stringify(jsonResponse.errors);
         }
-        return { status: 'ok', biblTexts: biblTexts, errorsInSomeKeys, errorsInSomeKeysMessage};
+        return { status: 'ok', biblTexts: biblTexts, errorsInSomeKeys, errorsInSomeKeysMessage };
       } else {
         /*
         or 
@@ -100,6 +100,10 @@ function workOnBibApiElement(level, biblTexts, elements, name, link) {
 
   if (level == 3) {
     biblTexts.push({ text: '\n' });
+  }
+
+  if (elements == null) {
+    return 0;
   }
 
   elements.forEach(item => {
