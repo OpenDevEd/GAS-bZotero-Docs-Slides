@@ -106,6 +106,10 @@ function onOpen(e) {
       )
     )
 
+  menu.addSubMenu(ui.createMenu('Settings')
+    .addItem('Email preferences', 'openEmailPreferencesSettings')
+  );
+
   menu.addToUi();
 }
 

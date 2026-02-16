@@ -1,4 +1,8 @@
 function insertUpdateBibliography() {
+    const result = checkEmailPreferences('Insert/update bibliography', 'insertUpdateBibliography');
+    if (result.stopExecution) {                                                                                                                        
+      return 0;             
+    }    
   if (HOST_APP == 'docs') {
     universalInsertUpdateBibliography(false, false, false);
   } else {

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Ubuntu', sans-serif;
+      color: #0f0e17;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    p {
+      margin-bottom: 15px;
+      font-size: 15px;
+    }
+
+    a {
+      color: #E68225;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: #D67215;
+      text-decoration: underline;
+    }
+
+    .checkbox-group {
+      margin: 20px 0;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 1px solid #E68225;
+      border-radius: 1px;
+      outline: none;
+      cursor: pointer;
+      vertical-align: middle;
+      position: relative;
+      margin-right: 10px;
+    }
+
+    .checkbox-item input[type="checkbox"]:checked {
+      background-color: #E68225;
+    }
+
+    .checkbox-item input[type="checkbox"]:checked::after {
+      content: '\2713';
+      font-size: 14px;
+      color: white;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .checkbox-item label {
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button {
+      font-family: 'Ubuntu', sans-serif;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+      min-width: 140px;
+    }
+
+    #okButton {
+      background-color: #E68225;
+      color: white;
+    }
+
+    #okButton:hover:not(:disabled) {
+      background-color: #D67215;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(230, 130, 37, 0.3);
+    }
+
+    #okButton:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .privacy-link {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    #errorMessage, #okMessage {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    #errorMessage {
+      background-color: #ffe6e6;
+      border-left: 4px solid #ff0000;
+    }
+
+    #okMessage {
+      background-color: #e6ffe6;
+      border-left: 4px solid #00cc00;
+    }
+  </style>
+  <script>
+    // Get current preferences from server-side template
+    const currentPreferencesRaw = <?= JSON.stringify(currentPreferences) ?>;
+    const userFriendlyName = <?= userFriendlyName ?>;
+    const functionName = <?= functionName ?>;
+
+    // Parse preferences if it's a string (from double JSON.stringify)
+    let currentPreferences = currentPreferencesRaw;
+    if (typeof currentPreferencesRaw === 'string' && currentPreferencesRaw != null) {
+      try {
+        currentPreferences = JSON.parse(currentPreferencesRaw);
+      } catch (e) {
+        console.error('Error parsing preferences:', e);
+        currentPreferences = null;
+      }
+    }
+
+    // Initialize checkboxes on page load
+    window.onload = function() {
+      if (currentPreferences == null || currentPreferences === undefined) {
+        // If no preferences set, check all boxes by default
+        document.getElementById('bZotBib').checked = false;
+        document.getElementById('otherProducts').checked = false;
+        document.getElementById('invitations').checked = false;
+      } else {
+        // Load saved preferences
+        document.getElementById('bZotBib').checked = currentPreferences.bZotBib || false;
+        document.getElementById('otherProducts').checked = currentPreferences.otherProducts || false;
+        document.getElementById('invitations').checked = currentPreferences.invitations || false;
+      }
+    };
+
+    function disableElements(disable) {
+      document.getElementById("okButton").disabled = disable;
+      document.getElementById("bZotBib").disabled = disable;
+      document.getElementById("otherProducts").disabled = disable;
+      document.getElementById("invitations").disabled = disable;
+    }
+
+    function savePreferences() {
+      disableElements(true);
+
+      const preferences = {
+        bZotBib: document.getElementById('bZotBib').checked,
+        otherProducts: document.getElementById('otherProducts').checked,
+        invitations: document.getElementById('invitations').checked
+      };
+
+      google.script.run
+        .withSuccessHandler(onSuccess)
+        .withFailureHandler(handleError)
+        .handleEmailPreferencesResponse(preferences, functionName);
+    }
+
+    async function onSuccess(response) {
+      const okMsg = document.getElementById("okMessage");
+      okMsg.style.display = "block";
+
+      // Build success message with user-friendly function name
+      let rerunMessage = '';
+      if (userFriendlyName && userFriendlyName.length > 0) {
+        rerunMessage = ' Please run ' + userFriendlyName + ' again.';
+      }
+
+      const thankYouMessage = 'Thank you for updating your preferences! You can always change them in Settings → Email preferences.' + rerunMessage;
+      okMsg.innerHTML = thankYouMessage;
+
+      // Countdown
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      for (let i = 5; i > 0; i--) {
+        okMsg.innerHTML = thankYouMessage + '<br>Window will close in ' + i + '...';
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      google.script.host.close();
+    }
+
+    function handleError(error) {
+      disableElements(false);
+      document.getElementById("errorMessage").innerText = "An error occurred: " + error.message;
+      document.getElementById("errorMessage").style.display = "block";
+    }
+  </script>
+</head>
+
+<body>
+  <div>
+    <p>We’d like to send you occasional emails about our products and related updates. Please choose what you’d like to receive.</p>
+    <p>You can change your preferences or unsubscribe at any time in: <strong>Extensions → bZotBib → Settings → Email preferences</strong> or by clicking the unsubscribe link in any email.</p>
+
+    <div class="checkbox-group">
+      <div class="checkbox-item">
+        <input type="checkbox" id="bZotBib" name="bZotBib">
+        <label for="bZotBib">bZotBib updates</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="otherProducts" name="otherProducts">
+        <label for="otherProducts">Updates about other products</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="invitations" name="invitations">
+        <label for="invitations">Invitations to test new products</label>
+      </div>
+    </div>
+
+    <button id="okButton" onclick="savePreferences()">Save preferences</button>
+
+    <div class="privacy-link">
+      <a target="_blank" href="https://opendeved.net/our-tools/privacy-policy/">Our privacy policy</a>
+    </div>
+
+    <div id="errorMessage" style="display: none;"></div>
+    <div id="okMessage" style="display: none;"></div>
+  </div>
+</body>
+
+</html>
