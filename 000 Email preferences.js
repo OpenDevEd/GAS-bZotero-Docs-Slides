@@ -55,6 +55,7 @@ function logEmailPreferences() {
  * @returns {Object} Object with stopExecution property
  */
 function checkEmailPreferences(userFriendlyName, functionName) {
+  onOpen();
   const preferences = getEmailPreferences();
   if (preferences == null) {
     showEmailPreferencesModal(userFriendlyName, functionName);

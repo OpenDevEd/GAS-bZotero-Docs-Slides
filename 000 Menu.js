@@ -10,12 +10,14 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
   const activeUser = Session.getEffectiveUser().getEmail();
   opendevedUser = getStyleValue('local_show_advanced_menu');
   Logger.log('opendevedUser=' + opendevedUser);
-  
+
   if (e) {
     Logger.log(e.authMode);
   }
 
+  let consentSuffix = '';
   if (e && e.authMode == ScriptApp.AuthMode.NONE) {
+    consentSuffix = 'ConsentScreen';
     Logger.log('1');
     targetMenuString = 'Toggle target';
     kerkoValidationSite = '<Enter validation site>';
@@ -42,7 +44,7 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
       targetMenuString = 'Toggle target (current: Zotero)';
       targetRefLinks = 'zotero';
     }
-    
+
     let currentZoteroCollectionKey = getDocumentPropertyString('zotero_collection_key');
     zoteroCollectionKeyAction = currentZoteroCollectionKey == null ? 'Add' : 'Change';
 
@@ -57,46 +59,46 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
   const menuStructure = {
     title: 'bZotBib',
     items: [
-      { type: 'item', label: 'Insert/update bibliography', functionName: 'insertUpdateBibliography' },
-      { type: 'item', label: 'Bibliography sidebar [experimental]', functionName: 'bibliographySidebar' },
+      { type: 'item', label: 'Insert/update bibliography', functionName: 'insertUpdateBibliography' + consentSuffix },
+      { type: 'item', label: 'Bibliography sidebar [experimental]', functionName: 'bibliographySidebar' + consentSuffix },
       { type: 'separator' },
-      { type: 'item', label: 'Author (Year) ↔ Author, Year', functionName: 'modifyLinkParenthesis' },
-      { type: 'item', label: 'Update/validate document links' + whereForest, functionName: 'validateLinks' },
-      { type: 'item', label: 'Clear validation markers', functionName: 'clearLinkMarkers' },
-      { type: 'item', label: 'Remove underlines from hyperlinks', functionName: 'removeUnderlineFromHyperlinks' },
+      { type: 'item', label: 'Author (Year) ↔ Author, Year', functionName: 'modifyLinkParenthesis' + consentSuffix },
+      { type: 'item', label: 'Update/validate document links' + whereForest, functionName: 'validateLinks' + consentSuffix },
+      { type: 'item', label: 'Clear validation markers', functionName: 'clearLinkMarkers' + consentSuffix },
+      { type: 'item', label: 'Remove underlines from hyperlinks', functionName: 'removeUnderlineFromHyperlinks' + consentSuffix },
       { type: 'separator' },
       {
         type: 'submenu',
         label: 'Configure and publish',
         items: [
-          { type: 'item', label: 'Prepare for publishing', functionName: 'prepareForPublishing' },
-          { type: 'item', label: 'Collect cited items', functionName: 'collectCitedItems' },
+          { type: 'item', label: 'Prepare for publishing', functionName: 'prepareForPublishing' + consentSuffix },
+          { type: 'item', label: 'Collect cited items', functionName: 'collectCitedItems' + consentSuffix },
           { type: 'separator' },
-          { type: 'item', label: zoteroItemKeyAction + ' Zotero item key for this doc', functionName: 'addZoteroItemKey' },
-          { type: 'item', label: zoteroCollectionKeyAction + ' Zotero collection key for this doc', functionName: 'addZoteroCollectionKey' },
+          { type: 'item', label: zoteroItemKeyAction + ' Zotero item key for this doc', functionName: 'addZoteroItemKey' + consentSuffix },
+          { type: 'item', label: zoteroCollectionKeyAction + ' Zotero collection key for this doc', functionName: 'addZoteroCollectionKey' + consentSuffix },
           { type: 'separator' },
-          { type: 'item', label: targetMenuString, functionName: 'targetReferenceLinks' },
-          { type: 'item', label: 'Remove openin=zoteroapp from hyperlinks', functionName: 'removeOpeninZoteroapp' },
+          { type: 'item', label: targetMenuString, functionName: 'targetReferenceLinks' + consentSuffix },
+          { type: 'item', label: 'Remove openin=zoteroapp from hyperlinks', functionName: 'removeOpeninZoteroapp' + consentSuffix },
           { type: 'separator' },
-          { type: 'item', label: 'Enter validation site', functionName: 'enterValidationSite' }
+          { type: 'item', label: 'Enter validation site', functionName: 'enterValidationSite' + consentSuffix }
         ]
       },
       {
         type: 'submenu',
         label: 'Additional functions',
         items: [
-          { type: 'item', label: 'Analyse Kerko links', functionName: 'analyseKerkoLinks' },
-          { type: 'item', label: 'Analyse Kerko links V1', functionName: 'analyseKerkoLinksV1' },
-          { type: 'item', label: 'Update/validate document links' + where + ' V1', functionName: 'validateLinksV1' },
-          { type: 'item', label: 'Show item keys', functionName: 'showItemKeys' },
-          { type: 'item', label: 'Show links & urls', functionName: 'validateLinksTestHelper' },
+          { type: 'item', label: 'Analyse Kerko links', functionName: 'analyseKerkoLinks' + consentSuffix },
+          { type: 'item', label: 'Analyse Kerko links V1', functionName: 'analyseKerkoLinksV1' + consentSuffix },
+          { type: 'item', label: 'Update/validate document links' + where + ' V1', functionName: 'validateLinksV1' + consentSuffix },
+          { type: 'item', label: 'Show item keys', functionName: 'showItemKeys' + consentSuffix },
+          { type: 'item', label: 'Show links & urls', functionName: 'validateLinksTestHelper' + consentSuffix },
           { type: 'separator' },
-          { type: 'item', label: 'Convert ZoteroTransfer markers to bZotBib', functionName: 'zoteroTransferDoc' },
+          { type: 'item', label: 'Convert ZoteroTransfer markers to bZotBib', functionName: 'zoteroTransferDoc' + consentSuffix },
           { type: 'separator' },
-          { type: 'item', label: 'Remove country markers (⇡Country: )', functionName: 'removeCountryMarkers' },
+          { type: 'item', label: 'Remove country markers (⇡Country: )', functionName: 'removeCountryMarkers' + consentSuffix },
           { type: 'separator' },
-          { type: 'item', label: 'Convert to numbered references (\'Vancouver\')', functionName: 'applyVancouverStyle' },
-          { type: 'item', label: 'Convert to text references (\'APA7\')', functionName: 'applyAPA7Style' }
+          { type: 'item', label: 'Convert to numbered references (\'Vancouver\')', functionName: 'applyVancouverStyle' + consentSuffix },
+          { type: 'item', label: 'Convert to text references (\'APA7\')', functionName: 'applyAPA7Style' + consentSuffix }
         ]
       },
       { type: 'separator' },
@@ -104,21 +106,21 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
         type: 'submenu',
         label: 'Text citation functions',
         items: [
-          { type: 'item', label: 'zpack Turn Zotero text citations into links', functionName: 'packZoteroCall' },
-          { type: 'item', label: 'zunpack Turn Zotero links into text', functionName: 'unpackCombined' },
+          { type: 'item', label: 'zpack Turn Zotero text citations into links', functionName: 'packZoteroCall' + consentSuffix },
+          { type: 'item', label: 'zunpack Turn Zotero links into text', functionName: 'unpackCombined' + consentSuffix },
           { type: 'separator' },
-          { type: 'item', label: 'zpacks Turn selected Zotero text citations into links', functionName: 'packZoteroSelectiveCall' },
-          { type: 'item', label: 'zunpackWarning Turn Zotero links into text, with warnings where citation text has changed', functionName: 'unpackCombinedWarning' },
+          { type: 'item', label: 'zpacks Turn selected Zotero text citations into links', functionName: 'packZoteroSelectiveCall' + consentSuffix },
+          { type: 'item', label: 'zunpackWarning Turn Zotero links into text, with warnings where citation text has changed', functionName: 'unpackCombinedWarning' + consentSuffix },
           { type: 'separator' },
           {
             type: 'submenu',
             label: 'Format text citations',
             items: [
-              { type: 'item', label: 'zminify - with small text', functionName: 'minifyCitations' },
-              { type: 'item', label: 'zmaxify - with coloured text', functionName: 'maxifyCitations' },
-              { type: 'item', label: 'zunfy - plain text', functionName: 'unfyCitations' },
+              { type: 'item', label: 'zminify - with small text', functionName: 'minifyCitations' + consentSuffix },
+              { type: 'item', label: 'zmaxify - with coloured text', functionName: 'maxifyCitations' + consentSuffix },
+              { type: 'item', label: 'zunfy - plain text', functionName: 'unfyCitations' + consentSuffix },
               { type: 'separator' },
-              { type: 'item', label: 'zclear warnings 《warning:...》and ❲ and ❳', functionName: 'clearWarningMarkers' }
+              { type: 'item', label: 'zclear warnings 《warning:...》and ❲ and ❳', functionName: 'clearWarningMarkers' + consentSuffix }
             ]
           }
         ]
@@ -127,7 +129,7 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
         type: 'submenu',
         label: 'Settings',
         items: [
-          { type: 'item', label: 'Email preferences', functionName: 'openEmailPreferencesSettings' }
+          { type: 'item', label: 'Email preferences', functionName: 'openEmailPreferencesSettings'}
         ]
       }
     ]
@@ -137,7 +139,7 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
   if (returnType === 'data') {
     return menuStructure;
   } else {
-    return buildUIMenu(menuStructure);
+    return buildUIMenu(menuStructure, consentSuffix);
   }
 }
 
@@ -146,19 +148,21 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
  * Helper function to build Google Docs UI menu from menu structure
  * Handles recursive nested submenus
  */
-function buildUIMenu(menuStructure) {
+function buildUIMenu(menuStructure, consentSuffix) {
+
+
   // Add sidebar launcher at the top of the menu
   menuStructure.items.unshift(
     {
       type: "item",
       label: "Open menu in sidebar 🚀",
-      functionName: "showSidebarMenu"
+      functionName: "showSidebarMenu" + consentSuffix
     },
     { type: 'separator' }
   );
 
   const menu = DocumentApp.getUi().createMenu(menuStructure.title);
-  
+
   // Recursive helper function to build menu items at any depth
   function buildMenuItems(parentMenu, items) {
     items.forEach(item => {
@@ -179,10 +183,10 @@ function buildUIMenu(menuStructure) {
       }
     });
   }
-  
+
   // Build all menu items recursively
   buildMenuItems(menu, menuStructure.items);
-  
+
   return menu;
 }
 
