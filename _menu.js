@@ -3,21 +3,26 @@ function onInstall(e) {
   addInstallationRecord();
 }
 
-function onOpen(e) {
+function onOpenOld(e) {
   let targetMenuString, kerkoValidationSite, zoteroItemKeyAction, zoteroCollectionKeyAction, opendevedUser = false;
   // https://developers.google.com/workspace/add-ons/concepts/editor-auth-lifecycle#the_complete_lifecycle
   let targetRefLinks;
 
   const activeUser = Session.getEffectiveUser().getEmail();
+  // Logger.log('activeUser='+activeUser);
   opendevedUser = getStyleValue('local_show_advanced_menu');
+  Logger.log('opendevedUser='+opendevedUser);
+  Logger.log(e.authMode);
 
   if (e && e.authMode == ScriptApp.AuthMode.NONE) {
+    Logger.log('1');
     targetMenuString = 'Toggle target';
     kerkoValidationSite = '<Enter validation site>';
     zoteroItemKeyAction = 'Add/change';
     zoteroCollectionKeyAction = 'Add/change';
     targetRefLinks = 'zotero';
   } else {
+    Logger.log('2');
     kerkoValidationSite = getDocumentPropertyString('kerko_validation_site');
     if (kerkoValidationSite == null) {
       if (activeUser.search(/edtechhub.org/i) != -1) {

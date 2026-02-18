@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Ubuntu', sans-serif;
+      color: #333333;
+      margin: 0;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    h3 {
+      margin: 0 0 12px 0;
+      color: #333333;
+      font-size: 18px;
+    }
+
+    .controls {
+      margin-bottom: 12px;
+    }
+
+    .control-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .control-button {
+      flex: 1;
+      padding: 6px 8px;
+      background-color: #E68225;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Ubuntu', sans-serif;
+    }
+
+    .control-button:hover {
+      background-color: #D67215;
+    }
+
+    .control-button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .search-container {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 30px 8px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Ubuntu', sans-serif;
+      font-size: 14px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #E68225;
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #999;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-clear:hover {
+      color: #333;
+    }
+
+    .menu-container {
+      border-top: 1px solid #ddd;
+      padding-top: 8px;
+    }
+
+    .menu-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s;
+    }
+
+    .menu-item:hover:not(.disabled) {
+      background-color: #d9d9d9;
+    }
+
+    .menu-item.active {
+      background-color: #c9c9c9;
+      font-weight: 500;
+    }
+
+    .menu-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .submenu-header {
+      padding: 8px 12px;
+      background-color: #f0f0f0;
+      cursor: pointer;
+      font-weight: 500;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    .submenu-header:hover:not(.disabled):not(.search-active) {
+      background-color: #e0e0e0;
+    }
+
+    .submenu-header.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .submenu-header.search-active {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .submenu-arrow {
+      transition: transform 0.2s;
+      font-size: 12px;
+    }
+
+    .submenu-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .submenu-items {
+      padding-left: 12px;
+    }
+
+    .separator {
+      height: 1px;
+      background-color: #ddd;
+      margin: 8px 0;
+    }
+
+    .status-message {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      padding: 8px 12px;
+      background-color: #E68225;
+      color: white;
+      border-radius: 4px;
+      font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .dots {
+      animation: blink 1.5s infinite;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <div class="controls">
+      <div class="control-buttons">
+        <button
+          class="control-button"
+          @click="openAllSubmenus"
+          :disabled="isExecuting">
+          Open all submenus
+        </button>
+        <button
+          class="control-button"
+          @click="closeAllSubmenus"
+          :disabled="isExecuting">
+          Close all submenus
+        </button>
+      </div>
+
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-input"
+          v-model="searchQuery"
+          @input="onSearchInput"
+          placeholder="Search menu items..."
+          :disabled="isExecuting"
+        />
+        <button
+          v-if="searchQuery"
+          class="search-clear"
+          @click="clearSearch"
+          :disabled="isExecuting">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <div class="menu-container">
+      <menu-items 
+        :items="menuData.items" 
+        :search-query="searchQuery"
+        :is-executing="isExecuting"
+        :active-item="activeItem"
+        :open-submenus="openSubmenus"
+        :parent-submenu-matches="false"
+        @toggle-submenu="toggleSubmenu"
+        @execute="executeFunction">
+      </menu-items>
+    </div>
+
+    <div v-if="isExecuting" class="status-message">
+      {{ executingLabel }} is running<span class="dots">...</span>
+    </div>
+  </div>
+
+  <script>
+    // Recursive component for menu items
+    Vue.component('menu-items', {
+      props: ['items', 'searchQuery', 'isExecuting', 'activeItem', 'openSubmenus', 'path', 'parentSubmenuMatches'],
+      template: `
+        <div>
+          <template v-for="(item, index) in items">
+            <div v-if="item.type === 'separator' && isItemVisible(item, index)" 
+                 :key="getKey('sep', index)" 
+                 class="separator">
+            </div>
+
+            <div v-else-if="item.type === 'item' && isItemVisible(item, index)" 
+                 :key="getKey('item', index)" 
+                 class="menu-item"
+                 :class="{ active: activeItem === item.functionName, disabled: isExecuting }" 
+                 @click="executeItem(item)">
+              {{ item.label }}
+            </div>
+
+            <div v-else-if="item.type === 'submenu' && isSubmenuVisible(item, index)" 
+                 :key="getKey('submenu', index)">
+              <div class="submenu-header" 
+                   :class="{ disabled: isExecuting, 'search-active': searchQuery }"
+                   @click="toggleItem(index)">
+                <span>{{ item.label }}</span>
+                <span class="submenu-arrow" :class="{ open: isSubmenuOpen(index) }">▶</span>
+              </div>
+              <div v-show="isSubmenuOpen(index)" class="submenu-items">
+                <!-- RECURSIVE: Render submenu items -->
+                <menu-items 
+                  :items="item.items"
+                  :search-query="searchQuery"
+                  :is-executing="isExecuting"
+                  :active-item="activeItem"
+                  :open-submenus="openSubmenus"
+                  :path="getPath(index)"
+                  :parent-submenu-matches="submenuNameMatches(item)"
+                  @toggle-submenu="toggleSubmenu"
+                  @execute="executeItem">
+                </menu-items>
+              </div>
+            </div>
+          </template>
+        </div>
+      `,
+      methods: {
+        getKey(type, index) {
+          const pathPrefix = this.path ? this.path + '-' : '';
+          return pathPrefix + type + '-' + index;
+        },
+        getPath(index) {
+          return this.path ? this.path + '-' + index : String(index);
+        },
+        isSubmenuOpen(index) {
+          const fullPath = this.getPath(index);
+          return this.openSubmenus[fullPath];
+        },
+        toggleItem(index) {
+          if (this.isExecuting || this.searchQuery) return;
+          const fullPath = this.getPath(index);
+          this.$emit('toggle-submenu', fullPath);
+        },
+        toggleSubmenu(path, forceOpen) {
+          this.$emit('toggle-submenu', path, forceOpen);
+        },
+        executeItem(item) {
+          this.$emit('execute', item);
+        },
+        matchesSearch(text) {
+          if (!this.searchQuery) return true;
+          return text.toLowerCase().includes(this.searchQuery.toLowerCase());
+        },
+        submenuNameMatches(submenu) {
+          return this.matchesSearch(submenu.label);
+        },
+        isItemVisible(item, index) {
+          if (!this.searchQuery) return true;
+          
+          if (item.type === 'separator') {
+            const prevItem = this.items[index - 1];
+            const nextItem = this.items[index + 1];
+            return (prevItem && this.isItemOrSubmenuVisible(prevItem)) && 
+                   (nextItem && this.isItemOrSubmenuVisible(nextItem));
+          }
+          
+          // Item is visible if:
+          // 1. Its label matches the search, OR
+          // 2. Its parent submenu name matches the search
+          return this.matchesSearch(item.label) || this.parentSubmenuMatches;
+        },
+        isSubmenuVisible(submenu, index) {
+          if (!this.searchQuery) return true;
+          
+          const submenuMatches = this.matchesSearch(submenu.label);
+          const hasMatchingChild = this.hasMatchingChildRecursive(submenu.items);
+          
+          // Submenu is visible if its name matches OR it has matching children
+          const isVisible = submenuMatches || hasMatchingChild;
+          
+          if (isVisible) {
+            const fullPath = this.getPath(index);
+            this.$emit('toggle-submenu', fullPath, true);
+          }
+          
+          return isVisible;
+        },
+        hasMatchingChildRecursive(items) {
+          for (let item of items) {
+            if (item.type === 'item' && this.matchesSearch(item.label)) {
+              return true;
+            }
+            if (item.type === 'submenu') {
+              // Check if submenu name matches OR if it has matching descendants
+              if (this.matchesSearch(item.label) || this.hasMatchingChildRecursive(item.items)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        },
+        isItemOrSubmenuVisible(item) {
+          if (item.type === 'item') {
+            return this.matchesSearch(item.label) || this.parentSubmenuMatches;
+          } else if (item.type === 'submenu') {
+            return this.matchesSearch(item.label) || this.hasMatchingChildRecursive(item.items);
+          }
+          return false;
+        }
+      }
+    });
+    
+    // console.log('Raw data:', '<?!= menuStructureJson ?>');
+    
+    let parsedMenuData;
+    try {
+      parsedMenuData = <?!= menuStructureJson ?>;
+      // console.log('Parsed menu data:', parsedMenuData);
+    } catch (e) {
+      // console.error('Failed to parse menu data:', e);
+      parsedMenuData = { title: 'Menu', items: [] };
+    }
+    
+    new Vue({
+      el: '#app',
+      data: {
+        menuData: parsedMenuData,
+        openSubmenus: {},
+        savedSubmenuState: {},
+        searchQuery: '',
+        isExecuting: false,
+        activeItem: null,
+        executingLabel: '',
+        hasSearchStarted: false
+      },
+      methods: {
+        initializeSubmenus(items, parentPath) {
+          items.forEach((item, index) => {
+            if (item.type === 'submenu') {
+              const path = parentPath ? parentPath + '-' + index : String(index);
+              this.$set(this.openSubmenus, path, false);
+              // Recursively initialize nested submenus
+              this.initializeSubmenus(item.items, path);
+            }
+          });
+        },
+        toggleSubmenu(path, forceOpen = false) {
+          if (forceOpen) {
+            // When search is active, force open but don't affect normal toggle
+            this.$set(this.openSubmenus, path, true);
+          } else {
+            // Normal toggle (only when not searching)
+            if (this.isExecuting || this.searchQuery) return;
+            this.$set(this.openSubmenus, path, !this.openSubmenus[path]);
+          }
+        },
+        openAllSubmenus() {
+          if (this.isExecuting) return;
+          this.searchQuery = '';
+          this.hasSearchStarted = false;
+          this.savedSubmenuState = {};
+          this.$nextTick(() => {
+            this.openAllSubmenusRecursive(this.menuData.items, '');
+          });
+        },
+        openAllSubmenusRecursive(items, parentPath) {
+          items.forEach((item, index) => {
+            if (item.type === 'submenu') {
+              const path = parentPath ? parentPath + '-' + index : String(index);
+              this.$set(this.openSubmenus, path, true);
+              // Recursively open nested submenus
+              this.openAllSubmenusRecursive(item.items, path);
+            }
+          });
+        },
+        closeAllSubmenus() {
+          if (this.isExecuting) return;
+          this.searchQuery = '';
+          this.hasSearchStarted = false;
+          this.savedSubmenuState = {};
+          this.$nextTick(() => {
+            this.openSubmenus = {};
+          });
+        },
+        onSearchInput() {
+          if (this.searchQuery && !this.hasSearchStarted) {
+            // Save state only when search actually starts (has content)
+            this.saveSubmenuState();
+            this.hasSearchStarted = true;
+          }
+          
+          if (!this.searchQuery && this.hasSearchStarted) {
+            // Search was cleared by deleting all text
+            this.restoreSubmenuState();
+            this.hasSearchStarted = false;
+          }
+        },
+        saveSubmenuState() {
+          // Save the current state of all submenus
+          this.savedSubmenuState = JSON.parse(JSON.stringify(this.openSubmenus));
+          // console.log('Saved state:', this.savedSubmenuState);
+        },
+        restoreSubmenuState() {
+          // Restore the saved state
+          if (Object.keys(this.savedSubmenuState).length > 0) {
+            this.openSubmenus = JSON.parse(JSON.stringify(this.savedSubmenuState));
+            // console.log('Restored state:', this.openSubmenus);
+            this.savedSubmenuState = {};
+          }
+        },
+        clearSearch() {
+          this.searchQuery = '';
+          this.restoreSubmenuState();
+          this.hasSearchStarted = false;
+        },
+        executeFunction(item) {
+          if (this.isExecuting) return;
+          
+          this.isExecuting = true;
+          this.activeItem = item.functionName;
+          this.executingLabel = item.label;
+          
+          const successHandler = (result) => {
+            this.isExecuting = false;
+            this.activeItem = null;
+            this.executingLabel = '';
+            
+            if (result && result.needUpdate && result.updatedMenuData) {
+              const currentSearch = this.searchQuery;
+              const currentSubmenuState = JSON.parse(JSON.stringify(this.openSubmenus));
+              
+              this.menuData = result.updatedMenuData;
+              
+              this.$nextTick(() => {
+                if (currentSearch) {
+                  this.searchQuery = currentSearch;
+                }
+                this.openSubmenus = currentSubmenuState;
+              });
+            }
+          };          
+          
+          const failureHandler = (error) => {
+            this.isExecuting = false;
+            this.activeItem = null;
+            this.executingLabel = '';
+            alert('Error: ' + error);
+          };
+          
+          if (item.functionParams && item.functionParams.length > 0) {
+            google.script.run
+              .withSuccessHandler(successHandler)
+              .withFailureHandler(failureHandler)
+              [item.functionName + '_sidebar'](...item.functionParams);
+          } else {
+            google.script.run
+              .withSuccessHandler(successHandler)
+              .withFailureHandler(failureHandler)
+              [item.functionName]();
+          }          
+        }
+      },
+      mounted() {
+        // console.log('Vue mounted. MenuData:', this.menuData);
+        this.hasSearchStarted = false;
+        if (this.menuData && this.menuData.items) {
+          this.initializeSubmenus(this.menuData.items, '');
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
