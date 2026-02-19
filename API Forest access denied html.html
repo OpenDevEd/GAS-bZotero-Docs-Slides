@@ -3,7 +3,7 @@
 
 <head>
   <base target="_top">
-<style>
+  <style>
     @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
 
     * {
@@ -66,31 +66,272 @@
       cursor: not-allowed;
       opacity: 0.6;
     }
-  </style>  
+
+    /* Audit section */
+    .audit-section {
+      margin-bottom: 20px;
+    }
+
+    .audit-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #0F0E17;
+    }
+
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .audit-table th {
+      text-align: left;
+      padding: 6px 8px;
+      background-color: #f0eff5;
+      font-weight: 700;
+      font-size: 13px;
+      color: #0F0E17;
+    }
+
+    .audit-table th:nth-child(2),
+    .audit-table td:nth-child(2) {
+      text-align: center;
+      width: 60px;
+    }
+
+    .audit-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e8e8f0;
+      vertical-align: top;
+    }
+
+    .audit-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .audit-table .data-row td:first-child {
+      font-weight: 500;
+    }
+
+    .qty-cell {
+      font-weight: 700;
+      color: #E68225;
+    }
+
+    .read-more-link {
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .detail-row td {
+      background-color: #fdf8f2;
+      font-size: 13px;
+      color: #555;
+      padding: 8px 10px;
+      border-left: 3px solid #E68225;
+    }
+
+    .tab-notice {
+      background-color: #fdf8f2;
+      border-left: 3px solid #E68225;
+      padding: 10px 12px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e8e8f0;
+      margin: 18px 0;
+    }
+  </style>
+
   <script>
-      function disableElements(disable) {
-        document.getElementById("cancelButton").disabled = disable;
-      }
+    function toggleDetail(id, linkEl) {
+      var row = document.getElementById(id);
+      var isHidden = row.style.display === 'none' || row.style.display === '';
+      row.style.display = isHidden ? 'table-row' : 'none';
+      linkEl.textContent = isHidden ? 'Less' : 'Read more';
+    }
+
+    function disableElements(disable) {
+      document.getElementById("cancelButton").disabled = disable;
+    }
 
     function closeWindow() {
-      disableElements(true); 
-      google.script.host.close();  
-    }    
+      disableElements(true);
+      google.script.host.close();
+    }
   </script>
 </head>
 
 <body>
   <div>
-    <p>Because you don’t have access to the Forest API, you won’t be able to use the following functions:</p>
-<ul>
-<li>Insert/update bibliography</li>
-<li>Bibliography sidebar [experimental]</li>
-<li>Update/validate document links via Forest API/zotero</li>
-<li>Prepare for publishing</li>
-<li>Collect cited items</li>
-</ul>
-<br>
-<p>Open the <a target="_blank" href="https://docs.google.com/document/d/1XM247sPp6Y78ff8NOfr02jQwpZaRIlkxNDQd0jOR-nA">“How to Use bZotBib” guide</a> to learn how to use the other functions.</p>
+
+    <?
+      var audit = JSON.parse(auditData);
+      var hasAnyLinks =
+        audit.zoteroUrl > 0 ||
+        audit.itemCslCitation > 0 ||
+        audit.cslBibliography > 0 ||
+        audit.ourUrl > 0 ||
+        audit.textUrl > 0 ||
+        audit.otherUrl > 0;
+    ?>
+
+    <? if (hasAnyLinks) { ?>
+    <div class="audit-section">
+      <h1 class="audit-title">Link Audit — Current Tab</h1>
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Count</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <? if (audit.zoteroUrl > 0) { ?>
+          <tr class="data-row">
+            <td>Zotero links</td>
+            <td class="qty-cell"><?= audit.zoteroUrl ?></td>
+            <td>Use Zotero app and Zotero Connector instead of bZotBib. <a href="#" class="read-more-link" onclick="toggleDetail('detail-zotero', this); return false;">Read more</a></td>
+          </tr>
+          <tr id="detail-zotero" style="display:none;" class="detail-row">
+            <td colspan="3">
+              If you see links with URLs like <em>https://www.zotero.org/google-docs/?SsdZRX</em> in your document,
+              it means someone used the <a href="https://www.zotero.org/" target="_blank">Zotero app</a>
+              and <a href="https://chromewebstore.google.com/detail/zotero-connector/ekhagklcjbdpajgpjgmbionohlpdbjgc" target="_blank">Zotero Connector</a>
+              to add citations to the document. Zotero Connector is a Chrome extension
+              which lets you insert and manage citations directly from your Zotero library in Google Docs.
+              <br><br>
+              To continue working with the citations, install Zotero app and Zotero Connector —
+              or ask whoever shared the document with you to run "Unlink Citations…" in their Zotero Connector.
+              <br><br>
+              <a href="https://www.zotero.org/support/google_docs" target="_blank">Zotero Connector for Google Docs — official documentation</a>
+            </td>
+          </tr>
+          <? } ?>
+
+          <? if (audit.itemCslCitation > 0) { ?>
+          <tr class="data-row">
+            <td>Zotero ITEM CSL_CITATION</td>
+            <td class="qty-cell"><?= audit.itemCslCitation ?></td>
+            <td>Use Zotero app and Zotero Connector instead of bZotBib. <a href="#" class="read-more-link" onclick="toggleDetail('detail-csl-citation', this); return false;">Read more</a></td>
+          </tr>
+          <tr id="detail-csl-citation" style="display:none;" class="detail-row">
+            <td colspan="3">
+              If you see text like <em>ITEM CSL_CITATION {"citationID":"MhAdorSq","properties":{"formattedCitation":"…</em>
+              in your document, it means someone used the
+              <a href="https://www.zotero.org/" target="_blank">Zotero app</a>
+              and <a href="https://chromewebstore.google.com/detail/zotero-connector/ekhagklcjbdpajgpjgmbionohlpdbjgc" target="_blank">Zotero Connector</a>
+              to add citations, then ran "Switch Word Processors…" in Zotero Connector.
+              This converted the citations into a format that can be safely transferred between word processors.
+              <br><br>
+              To restore the citations and continue working with them, install Zotero app and Zotero Connector,
+              then run "Refresh" in Zotero Connector.
+              <br><br>
+              <a href="https://www.zotero.org/support/google_docs" target="_blank">Zotero Connector for Google Docs — official documentation</a>              
+              <br><br>
+              <a href="https://www.zotero.org/support/kb/moving_documents_between_word_processors" target="_blank">Moving documents with Zotero citations between word processors</a>
+            </td>
+          </tr>
+          <? } ?>
+
+          <? if (audit.cslBibliography > 0) { ?>
+          <tr class="data-row">
+            <td>Zotero CSL_BIBLIOGRAPHY</td>
+            <td class="qty-cell"><?= audit.cslBibliography ?></td>
+            <td>Use Zotero app and Zotero Connector instead of bZotBib. <a href="#" class="read-more-link" onclick="toggleDetail('detail-csl-bib', this); return false;">Read more</a></td>
+          </tr>
+          <tr id="detail-csl-bib" style="display:none;" class="detail-row">
+            <td colspan="3">
+              If you see text like <em>BIBL {"uncited":[],"omitted":[],"custom":[]} CSL_BIBLIOGRAPHY</em>
+              in your document, it means someone used the
+              <a href="https://www.zotero.org/" target="_blank">Zotero app</a>
+              and <a href="https://chromewebstore.google.com/detail/zotero-connector/ekhagklcjbdpajgpjgmbionohlpdbjgc" target="_blank">Zotero Connector</a>
+              to add citations and a bibliography, then ran "Switch Word Processors…" in Zotero Connector.
+              This converted the citations and bibliography into a format that can be safely transferred between word processors.
+              <br><br>
+              To restore the citations and bibliography and continue working with them, install Zotero app
+              and Zotero Connector, then run "Refresh" in Zotero Connector.
+              <br><br>
+              <a href="https://www.zotero.org/support/google_docs" target="_blank">Zotero Connector for Google Docs — official documentation</a>              
+              <br><br>
+              <a href="https://www.zotero.org/support/kb/moving_documents_between_word_processors" target="_blank">Moving documents with Zotero citations between word processors</a>
+            </td>
+          </tr>
+          <? } ?>
+
+          <? if (audit.ourUrl > 0) { ?>
+          <tr class="data-row">
+            <td>ETH/ODE links</td>
+            <td class="qty-cell"><?= audit.ourUrl ?></td>
+            <td>Open the document in your ETH/ODE account to use all bZotBib functions. <a href="#" class="read-more-link" onclick="toggleDetail('detail-our-url', this); return false;">Read more</a></td>
+          </tr>
+          <tr id="detail-our-url" style="display:none;" class="detail-row">
+            <td colspan="3">The document contains ETH/ODE resource links. To validate and manage these links with full bZotBib functionality, open this document while signed in to your ETH/ODE account.</td>
+          </tr>
+          <? } ?>
+
+          <? if (audit.textUrl > 0) { ?>
+          <tr class="data-row">
+            <td>Plain-text URLs</td>
+            <td class="qty-cell"><?= audit.textUrl ?></td>
+            <td>Run "Convert text URLs to hyperlinks" to turn plain-text URLs into proper links. <a href="#" class="read-more-link" onclick="toggleDetail('detail-text-url', this); return false;">Read more</a></td>
+          </tr>
+          <tr id="detail-text-url" style="display:none;" class="detail-row">
+            <td colspan="3">These URLs appear as plain text rather than clickable hyperlinks. Run "Convert text URLs to hyperlinks" to automatically detect and convert them into proper links.</td>
+          </tr>
+          <? } ?>
+
+          <? if (audit.otherUrl > 0) { ?>
+          <tr class="data-row">
+            <td>Other URLs</td>
+            <td class="qty-cell"><?= audit.otherUrl ?></td>
+            <td>Run "Remove underlines from hyperlinks". <a href="#" class="read-more-link" onclick="toggleDetail('detail-other-url', this); return false;">Read more</a></td>
+          </tr>
+<tr id="detail-other-url" style="display:none;" class="detail-row">
+  <td colspan="3">
+    <? var hasOtherCategories = audit.zoteroUrl > 0 || audit.itemCslCitation > 0 || audit.cslBibliography > 0 || audit.ourUrl > 0 || audit.textUrl > 0; ?>
+    These are hyperlinks<? if (hasOtherCategories) { ?> that don't fall into any of the categories above<? } ?>. Run "Remove underlines from hyperlinks" to apply consistent formatting across all links in the document.
+  </td>
+</tr>
+          <? } ?>
+
+
+
+
+        </tbody>
+      </table>
+      <? if (audit.zoteroUrl > 0 || audit.itemCslCitation > 0 || audit.cslBibliography > 0) { ?>
+      <p style="font-size: 13px; color: #888; margin-top: 13px; margin-bottom: 0;">
+        Zotero is a trademark of the Corporation for Digital Scholarship. bZotBib add-on is not affiliated with or endorsed by them.
+      </p>
+      <? } ?>
+    </div>
+    <? } else if (audit.numberOfTabs > 1) { ?>
+    <div class="tab-notice">
+      bZotBib checks links only on the currently open document tab. This tab doesn't contain any links. Switch to another tab and run bZotBib again.
+    </div>
+    <hr class="section-divider">    
+    <? } ?>
+
+
+    <p>Because you don't have access to the Forest API, you won't be able to use the following functions:</p>
+    <ul>
+      <li>Insert/update bibliography</li>
+      <li>Bibliography sidebar [experimental]</li>
+      <li>Update/validate document links via Forest API/Zotero</li>
+      <li>Prepare for publishing</li>
+      <li>Collect cited items</li>
+    </ul>
+    <br>
+    <p>Open the <a target="_blank" href="https://docs.google.com/document/d/1XM247sPp6Y78ff8NOfr02jQwpZaRIlkxNDQd0jOR-nA">"How to Use bZotBib" guide</a> to learn how to use the other functions.</p>
 
     <button id="cancelButton" onclick="closeWindow()">Close</button>
   </div>

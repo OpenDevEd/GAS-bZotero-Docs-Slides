@@ -1,10 +1,15 @@
 function insertUpdateBibliography() {
+  addUsageTrackingRecord('insertUpdateBibliography');
+  if (userCanCallForestAPI() === false) {
+    showAccessDeniedWindow();
+    return 0;
+  }
+
   if (HOST_APP == 'docs') {
     universalInsertUpdateBibliography(false, false, false);
   } else {
     insertUpdateBibliographySlides(false, false, false);
   }
-  addUsageTrackingRecord('insertUpdateBibliography');
 }
 
 // insertUpdateBibliography and prepareForPublishing use the function
