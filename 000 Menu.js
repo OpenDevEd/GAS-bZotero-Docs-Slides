@@ -129,7 +129,7 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
         type: 'submenu',
         label: 'Settings',
         items: [
-          { type: 'item', label: 'Email preferences', functionName: 'openEmailPreferencesSettings'}
+          { type: 'item', label: 'Email preferences', functionName: 'openEmailPreferencesSettings' }
         ]
       }
     ]
@@ -149,7 +149,7 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
  * Handles recursive nested submenus
  */
 function buildUIMenu(menuStructure, consentSuffix) {
-
+  const ui = getUi();
 
   // Add sidebar launcher at the top of the menu
   menuStructure.items.unshift(
@@ -161,7 +161,7 @@ function buildUIMenu(menuStructure, consentSuffix) {
     { type: 'separator' }
   );
 
-  const menu = DocumentApp.getUi().createMenu(menuStructure.title);
+  const menu = ui.createMenu(menuStructure.title);
 
   // Recursive helper function to build menu items at any depth
   function buildMenuItems(parentMenu, items) {
@@ -176,7 +176,7 @@ function buildUIMenu(menuStructure, consentSuffix) {
           parentMenu.addItem(item.label, item.functionName);
         }
       } else if (item.type === 'submenu') {
-        const submenu = DocumentApp.getUi().createMenu(item.label);
+        const submenu = ui.createMenu(item.label);
         // RECURSIVE CALL: Handle nested submenus
         buildMenuItems(submenu, item.items);
         parentMenu.addSubMenu(submenu);
@@ -195,6 +195,7 @@ function buildUIMenu(menuStructure, consentSuffix) {
  * Show the sidebar menu
  */
 function showSidebarMenu() {
+  const ui = getUi();
   const template = HtmlService.createTemplateFromFile('000 Menu sidebar');
   const menuStructure = universal_bZotBib_menu(null, 'data');
   template.menuStructureJson = JSON.stringify(menuStructure);
@@ -202,7 +203,7 @@ function showSidebarMenu() {
   const html = template.evaluate()
     .setTitle(menuStructure.title + ' menu');
 
-  DocumentApp.getUi().showSidebar(html);
+  ui.showSidebar(html);
 }
 
 
