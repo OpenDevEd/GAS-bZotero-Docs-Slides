@@ -1,4 +1,10 @@
 function collectCitedItems() {
+  addUsageTrackingRecord('collectCitedItems');
+  if (userCanCallForestAPI() === false) {
+    showAccessDeniedWindow();
+    return 0;
+  }
+
   const ui = getUi();
   try {
 
@@ -70,5 +76,4 @@ function collectCitedItems() {
   catch (error) {
     ui.alert('Error in function collectCitedItems. ' + error);
   }
-  addUsageTrackingRecord('collectCitedItems');
 }

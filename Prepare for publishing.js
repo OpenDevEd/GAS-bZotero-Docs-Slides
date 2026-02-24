@@ -1,5 +1,10 @@
 function prepareForPublishing() {
-
+  addUsageTrackingRecord('prepareForPublishing');
+  if (userCanCallForestAPI() === false) {
+    showAccessDeniedWindow();
+    return 0;
+  }
+  
   let targetRefLinks = getDocumentPropertyString('target_ref_links');
 
   if (targetRefLinks != 'kerko') {
@@ -14,5 +19,4 @@ function prepareForPublishing() {
   }
 
   removeUnderlineFromHyperlinks(false);
-  addUsageTrackingRecord('prepareForPublishing');
 }

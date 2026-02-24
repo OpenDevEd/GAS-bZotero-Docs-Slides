@@ -70,6 +70,8 @@ function checkEmailPreferences(userFriendlyName, functionName) {
  * @param {string} functionName - Real function name for re-run message
  */
 function showEmailPreferencesModal(userFriendlyName, functionName) {
+  const forUsageTracking = userFriendlyName === '' ? functionName : 'showEmailPreferencesModal';
+  addUsageTrackingRecord(forUsageTracking);
   const template = HtmlService.createTemplateFromFile('000 Email preferences html.html');
   template.userFriendlyName = userFriendlyName || '';
   template.functionName = functionName || '';
@@ -81,7 +83,6 @@ function showEmailPreferencesModal(userFriendlyName, functionName) {
 
   const ui = getUi();
   ui.showModalDialog(htmlOutput, 'Email preferences');
-  addUsageTrackingRecord('showEmailPreferencesModal');
 }
 
 /**

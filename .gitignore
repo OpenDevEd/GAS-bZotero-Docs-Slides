@@ -1,4 +1,5 @@
 .clasp.json
 appsscript.json
 000 Env.js
+config_private.js
 .gitignore

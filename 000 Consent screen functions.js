@@ -75,6 +75,14 @@ function removeUnderlineFromHyperlinksConsentScreen() {
   removeUnderlineFromHyperlinks();
 }
 
+function convertPlainTextUrlsConsentScreen() {
+  const result = checkEmailPreferences('Convert text URLs into hyperlinks', 'convertPlainTextUrls');
+  if (result.stopExecution) {
+    return 0;
+  }
+  convertPlainTextUrls();
+}
+
 // ============================================================================
 // Configure and Publish Submenu
 // ============================================================================
@@ -209,6 +217,22 @@ function applyAPA7StyleConsentScreen() {
     return 0;
   }
   applyAPA7Style();
+}
+
+function highlightZoteroLinksConsentScreen() {
+  const result = checkEmailPreferences('Highlight Zotero links', 'highlightZoteroLinks');
+  if (result.stopExecution) {
+    return 0;
+  }
+  highlightZoteroLinks();
+}
+
+function removeZoteroLinkHighlightsConsentScreen() {
+  const result = checkEmailPreferences('Remove Zotero link highlights', 'removeZoteroLinkHighlights');
+  if (result.stopExecution) {
+    return 0;
+  }
+  removeZoteroLinkHighlights();
 }
 
 // ============================================================================

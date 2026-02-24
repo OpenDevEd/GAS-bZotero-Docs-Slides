@@ -9,23 +9,16 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
 
   const activeUser = Session.getEffectiveUser().getEmail();
   opendevedUser = getStyleValue('local_show_advanced_menu');
-  Logger.log('opendevedUser=' + opendevedUser);
-
-  if (e) {
-    Logger.log(e.authMode);
-  }
 
   let consentSuffix = '';
   if (e && e.authMode == ScriptApp.AuthMode.NONE) {
     consentSuffix = 'ConsentScreen';
-    Logger.log('1');
     targetMenuString = 'Toggle target';
     kerkoValidationSite = '<Enter validation site>';
     zoteroItemKeyAction = 'Add/change';
     zoteroCollectionKeyAction = 'Add/change';
     targetRefLinks = 'zotero';
   } else {
-    Logger.log('2');
     kerkoValidationSite = getDocumentPropertyString('kerko_validation_site');
     if (kerkoValidationSite == null) {
       if (activeUser.search(/edtechhub.org/i) != -1) {
@@ -65,6 +58,7 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
       { type: 'item', label: 'Author (Year) ↔ Author, Year', functionName: 'modifyLinkParenthesis' + consentSuffix },
       { type: 'item', label: 'Update/validate document links' + whereForest, functionName: 'validateLinks' + consentSuffix },
       { type: 'item', label: 'Clear validation markers', functionName: 'clearLinkMarkers' + consentSuffix },
+      { type: 'item', label: 'Convert text URLs into hyperlinks', functionName: 'convertPlainTextUrls' + consentSuffix },
       { type: 'item', label: 'Remove underlines from hyperlinks', functionName: 'removeUnderlineFromHyperlinks' + consentSuffix },
       { type: 'separator' },
       {
@@ -98,7 +92,10 @@ function universal_bZotBib_menu(e, returnType = 'menu') {
           { type: 'item', label: 'Remove country markers (⇡Country: )', functionName: 'removeCountryMarkers' + consentSuffix },
           { type: 'separator' },
           { type: 'item', label: 'Convert to numbered references (\'Vancouver\')', functionName: 'applyVancouverStyle' + consentSuffix },
-          { type: 'item', label: 'Convert to text references (\'APA7\')', functionName: 'applyAPA7Style' + consentSuffix }
+          { type: 'item', label: 'Convert to text references (\'APA7\')', functionName: 'applyAPA7Style' + consentSuffix },
+          { type: 'separator' },
+          { type: 'item', label: 'Highlight Zotero links', functionName: 'highlightZoteroLinks' + consentSuffix },
+          { type: 'item', label: 'Remove Zotero link highlights', functionName: 'removeZoteroLinkHighlights' + consentSuffix }
         ]
       },
       { type: 'separator' },

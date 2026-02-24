@@ -55,12 +55,12 @@ function validateLinksTestHelper() {
   let allLinks = '';
   for (let i in linksArray) {
     allLinks += `
-    <br>
-        ${linksArray[i].linkText.replace('<', '&lt;').replace('>', '&gt;')}
-    <br>
-        <a target="_blank" href="${linksArray[i].link}">${linksArray[i].link}</a>
-    <br>
-    `;
+  <br>
+      ${escapeHtml(linksArray[i].linkText)}
+  <br>
+      <a target="_blank" href="${escapeHtml(linksArray[i].link)}">${escapeHtml(linksArray[i].link)}</a>
+  <br>
+  `;
   }
 
   let html = `<!DOCTYPE html>
@@ -110,4 +110,12 @@ function testingFindAllLinks(element, source, linksArray) {
       }
     }
   }
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

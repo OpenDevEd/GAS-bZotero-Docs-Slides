@@ -93,6 +93,10 @@ function validateLinksV1() {
 function validateLinks(validate = true, getparams = true, markorphanedlinks = true, analysekerkolinks = false, newForestAPI = true, trackUsage = true) {
   if (trackUsage === true) {
     addUsageTrackingRecord('validateLinks');
+    if (userCanCallForestAPI() === false) {
+      showAccessDeniedWindow();
+      return 0;
+    }
   }
   console.time('validateLinks time')
 

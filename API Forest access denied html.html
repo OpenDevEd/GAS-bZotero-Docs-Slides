@@ -147,6 +147,16 @@
       border-top: 1px solid #e8e8f0;
       margin: 18px 0;
     }
+
+code {
+  font-family: 'Ubuntu Mono', 'Courier New', monospace;
+  font-size: 12px;
+  background-color: #f0eff5;
+  color: #0F0E17;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid #dddde8;
+}
   </style>
 
   <script>
@@ -184,7 +194,7 @@
 
     <? if (hasAnyLinks) { ?>
     <div class="audit-section">
-      <h1 class="audit-title">Link Audit — Current Tab</h1>
+      <h1 class="audit-title">Link audit — current tab</h1>
       <table class="audit-table">
         <thead>
           <tr>
@@ -213,6 +223,8 @@
               or ask whoever shared the document with you to run "Unlink Citations…" in their Zotero Connector.
               <br><br>
               <a href="https://www.zotero.org/support/google_docs" target="_blank">Zotero Connector for Google Docs — official documentation</a>
+              <br><br>
+              In bZotBib, run <code>Additional functions → Highlight Zotero links</code> to visually distinguish Zotero links from other links in the document. It applies a yellow background to all Zotero links.
             </td>
           </tr>
           <? } ?>
@@ -282,10 +294,10 @@
           <tr class="data-row">
             <td>Plain-text URLs</td>
             <td class="qty-cell"><?= audit.textUrl ?></td>
-            <td>Run "Convert text URLs to hyperlinks" to turn plain-text URLs into proper links. <a href="#" class="read-more-link" onclick="toggleDetail('detail-text-url', this); return false;">Read more</a></td>
+            <td>Run <code>bZotBib → Convert text URLs into hyperlinks</code> to turn plain-text URLs into proper links. <a href="#" class="read-more-link" onclick="toggleDetail('detail-text-url', this); return false;">Read more</a></td>
           </tr>
           <tr id="detail-text-url" style="display:none;" class="detail-row">
-            <td colspan="3">These URLs appear as plain text rather than clickable hyperlinks. Run "Convert text URLs to hyperlinks" to automatically detect and convert them into proper links.</td>
+            <td colspan="3">These URLs appear as plain text rather than clickable hyperlinks. Run <code>bZotBib → Convert text URLs into hyperlinks</code> to automatically detect and convert them into proper links.</td>
           </tr>
           <? } ?>
 
@@ -293,12 +305,12 @@
           <tr class="data-row">
             <td>Other URLs</td>
             <td class="qty-cell"><?= audit.otherUrl ?></td>
-            <td>Run "Remove underlines from hyperlinks". <a href="#" class="read-more-link" onclick="toggleDetail('detail-other-url', this); return false;">Read more</a></td>
+            <td>Run <code>bZotBib → Remove underlines from hyperlinks</code>. <a href="#" class="read-more-link" onclick="toggleDetail('detail-other-url', this); return false;">Read more</a></td>
           </tr>
 <tr id="detail-other-url" style="display:none;" class="detail-row">
   <td colspan="3">
     <? var hasOtherCategories = audit.zoteroUrl > 0 || audit.itemCslCitation > 0 || audit.cslBibliography > 0 || audit.ourUrl > 0 || audit.textUrl > 0; ?>
-    These are hyperlinks<? if (hasOtherCategories) { ?> that don't fall into any of the categories above<? } ?>. Run "Remove underlines from hyperlinks" to apply consistent formatting across all links in the document.
+    These are hyperlinks<? if (hasOtherCategories) { ?> that don't fall into any of the categories above<? } ?>. Run <code>bZotBib → Remove underlines from hyperlinks</code> to apply consistent formatting across all links in the document.
   </td>
 </tr>
           <? } ?>
@@ -329,6 +341,7 @@
       <li>Update/validate document links via Forest API/Zotero</li>
       <li>Prepare for publishing</li>
       <li>Collect cited items</li>
+      <li>Analyse Kerko links</li>
     </ul>
     <br>
     <p>Open the <a target="_blank" href="https://docs.google.com/document/d/1XM247sPp6Y78ff8NOfr02jQwpZaRIlkxNDQd0jOR-nA">"How to Use bZotBib" guide</a> to learn how to use the other functions.</p>

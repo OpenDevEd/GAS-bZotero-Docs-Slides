@@ -1,8 +1,12 @@
 function bibliographySidebar() {
+  addUsageTrackingRecord('bibliographySidebar');
+  if (userCanCallForestAPI() === false) {
+    showAccessDeniedWindow();
+    return 0;
+  }
   const ui = getUi();
   const html = HtmlService.createHtmlOutputFromFile('Sidebar html').setTitle('Bibliography');
   ui.showSidebar(html);
-  addUsageTrackingRecord('bibliographySidebar');
 }
 
 function bibliographyForSidebar(trackUsage = true) {
