@@ -1,7 +1,7 @@
 function userCanCallForestAPI() {
   const activeUser = Session.getActiveUser().getEmail();
   const activeUserDomain = String(activeUser).split('@')[1];
-  if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net') {
+  if (activeUserDomain != 'edtechhub.org' && activeUserDomain != 'opendeved.net' && activeUserDomain != 'ekitabu.com') {
     return false;
   }else{
     return true;
