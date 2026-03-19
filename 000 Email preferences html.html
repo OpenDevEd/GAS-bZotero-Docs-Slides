@@ -37,7 +37,7 @@
     }
 
     .checkbox-group {
-      margin: 20px 0;
+      margin: 10px 0;
     }
 
     .checkbox-item {
@@ -88,7 +88,8 @@
       border-radius: 6px;
       cursor: pointer;
       margin-right: 10px;
-      margin-top: 10px;
+      margin-top: 5px;
+      margin-bottom: 5px;
       transition: all 0.3s ease;
       min-width: 140px;
     }
@@ -156,11 +157,13 @@
         document.getElementById('bZotBib').checked = false;
         document.getElementById('otherProducts').checked = false;
         document.getElementById('invitations').checked = false;
+        document.getElementById('initiatives').checked = false;
       } else {
         // Load saved preferences
         document.getElementById('bZotBib').checked = currentPreferences.bZotBib || false;
         document.getElementById('otherProducts').checked = currentPreferences.otherProducts || false;
         document.getElementById('invitations').checked = currentPreferences.invitations || false;
+        document.getElementById('initiatives').checked = currentPreferences.initiatives || false;
       }
     };
 
@@ -169,6 +172,7 @@
       document.getElementById("bZotBib").disabled = disable;
       document.getElementById("otherProducts").disabled = disable;
       document.getElementById("invitations").disabled = disable;
+      document.getElementById("initiatives").disabled = disable;
     }
 
     function savePreferences() {
@@ -177,7 +181,8 @@
       const preferences = {
         bZotBib: document.getElementById('bZotBib').checked,
         otherProducts: document.getElementById('otherProducts').checked,
-        invitations: document.getElementById('invitations').checked
+        invitations: document.getElementById('invitations').checked,
+        initiatives: document.getElementById('initiatives').checked
       };
 
       google.script.run
@@ -219,8 +224,7 @@
 
 <body>
   <div>
-    <p>We’d like to send you occasional emails about our products and related updates. Please choose what you’d like to receive.</p>
-    <p>You can change your preferences or unsubscribe at any time in: <strong>Extensions → bZotBib → Settings → Email preferences</strong> or by clicking the unsubscribe link in any email.</p>
+    <p>OpenDevEd is a small organisation focusing on education and climate change in lower income regions. We would like to send you occasional updates about our products and initiatives. Please choose what you’d like to receive.</p>
 
     <div id="errorMessage" style="display: none;"></div>
     <div id="okMessage" style="display: none;"></div>
@@ -238,9 +242,15 @@
         <input type="checkbox" id="invitations" name="invitations">
         <label for="invitations">Invitations to test new products</label>
       </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="initiatives" name="initiatives">
+        <label for="initiatives">Updates about our initiatives</label>
+      </div>      
     </div>
 
     <button id="okButton" onclick="savePreferences()">Save preferences</button>
+
+    <p>You can change your preferences or unsubscribe at any time in: <strong>Extensions → bZotBib → Settings → Email preferences</strong> or by clicking the unsubscribe link in any email.</p>
 
     <div class="privacy-link">
       <a target="_blank" href="https://opendeved.net/our-tools/privacy-policy/">Our privacy policy</a>

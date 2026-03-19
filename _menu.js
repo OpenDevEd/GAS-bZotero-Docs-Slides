@@ -1,6 +1,7 @@
 function onInstall(e) {
   onOpen(e);
   addInstallationRecord();
+  openEmailPreferencesSettingsAfterInstallation();
 }
 
 function minifyCitations() {

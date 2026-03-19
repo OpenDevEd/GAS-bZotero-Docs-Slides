@@ -78,8 +78,8 @@ function showEmailPreferencesModal(userFriendlyName, functionName) {
   template.currentPreferences = getEmailPreferences();
 
   const htmlOutput = template.evaluate()
-    .setWidth(450)
-    .setHeight(450);
+    .setWidth(500)
+    .setHeight(480);
 
   const ui = getUi();
   ui.showModalDialog(htmlOutput, 'Email preferences');
@@ -90,6 +90,13 @@ function showEmailPreferencesModal(userFriendlyName, functionName) {
  */
 function openEmailPreferencesSettings() {
   showEmailPreferencesModal('', 'openEmailPreferencesSettings');
+}
+
+/**
+ * Open subscription modal after installation
+ */
+function openEmailPreferencesSettingsAfterInstallation() {
+  showEmailPreferencesModal('', 'openEmailPreferencesSettingsAfterInstallation');
 }
 
 /**
