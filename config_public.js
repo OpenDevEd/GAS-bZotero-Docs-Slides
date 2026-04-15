@@ -70,6 +70,15 @@ const styles = {
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://docs.unlockingdata.africa/lib/',
     "group_id": "5578897"
+  },
+  "ekitabu":
+  {
+    "name": "bZotBibDocs (evidence.ekitabu.com)",
+    "default_everybody": false,
+    "default_for": "evidence.ekitabu.com",
+    "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
+    "kerkoValidationSite": 'https://evidence.ekitabu.com/lib/',
+    "group_id": "5724422"
   }
 };
 
