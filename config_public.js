@@ -57,7 +57,7 @@ const styles = {
   {
     "name": "ZoteroDocs (maths.educationevidence.io)",
     "default_everybody": false,
-    "default_for": "maths.educationevidence.io",
+    "default_for": "educationevidence.io",
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://maths.educationevidence.io/lib/',
     "group_id": "5168324"
@@ -66,7 +66,7 @@ const styles = {
   {
     "name": "bZotBibDocs (docs.unlockingdata.africa)",
     "default_everybody": false,
-    "default_for": "docs.unlockingdata.africa",
+    "default_for": "unlockingdata.africa",
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://docs.unlockingdata.africa/lib/',
     "group_id": "5578897"
@@ -75,7 +75,7 @@ const styles = {
   {
     "name": "bZotBibDocs (evidence.ekitabu.com)",
     "default_everybody": false,
-    "default_for": "evidence.ekitabu.com",
+    "default_for": "ekitabu.com",
     "LINK_MARK_STYLE_BACKGROUND_COLOR": "#dddddd",
     "kerkoValidationSite": 'https://evidence.ekitabu.com/lib/',
     "group_id": "5724422"
